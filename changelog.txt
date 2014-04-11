@@ -1,0 +1,8 @@
+Plugin Name: WPMUDEV MSReader
+Author: WPMUDEV
+Lead developer: Maniu
+
+== Changelog ==
+
+= 1.0.0 =
+* Initial Release
