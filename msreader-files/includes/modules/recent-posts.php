@@ -1,14 +1,14 @@
 <?php
 $module = array(
-	'name' => __( 'My Posts', 'wmd_msreader' ),
+	'name' => __( 'Recent Posts', 'wmd_msreader' ),
 	'description' => __( 'Displays my posts', 'wmd_msreader' ),
-	'slug' => 'my-posts', 
-	'class' => 'WMD_MSReader_Module_MyPosts'
+	'slug' => 'recent-posts', 
+	'class' => 'WMD_MSReader_Module_RecentPost'
 );
 
-class WMD_MSReader_Module_MyPosts extends WMD_MSReader_Modules {
+class WMD_MSReader_Module_RecentPost extends WMD_MSReader_Modules {
 	function init() {
-		add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_link_to_widget'), 10 );
+		add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_link_to_widget'), 40 );
     }
 
     function add_link_to_widget($widgets) {
@@ -24,8 +24,7 @@ class WMD_MSReader_Module_MyPosts extends WMD_MSReader_Modules {
     	$query = "
             SELECT BLOG_ID, ID, post_author, post_date_gmt, post_content, post_title
             FROM $this->db_network_posts
-            WHERE post_author = $current_user_id 
-            AND post_status = 'publish'
+            WHERE post_status = 'publish'
             ORDER BY post_date_gmt DESC
             $limit
         ";

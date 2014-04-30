@@ -17,7 +17,7 @@ foreach ($sidebar_widgets as $slug => $details) {
 	$default_style = (!isset($details['default_style']) || (isset($details['default_style']) && $details['default_style'])) ? 1 : 0;
 	if($default_style) { 
 	?>
-		<div id="widget-<?php echo $slug; ?>" class="postbox">
+		<div id="msreader-widget-<?php echo $slug; ?>" class="msreader-widget postbox">
 			<?php echo isset($details['title']) ? '<h3>'.$details['title'].'</h3>' : ''; ?>
 			<div class="inside">
 	<?php 
@@ -33,13 +33,14 @@ foreach ($sidebar_widgets as $slug => $details) {
 					if(!isset($value['title']) || !isset($value['link']))
 						continue;
 					
+					//check for active url so class can be added
 					$link_query = parse_url($value['link']);
 					$link_query = $link_query['query'];
 					$active = ($link_query == $_SERVER['QUERY_STRING']) ? ' class="active"' : '';
 
 					echo '<li'.$active.'><a href="'.$value['link'].'">'.$value['title'].'</a></li>';
 				}
-				echo '<ul>';
+				echo '</ul>';
 			}
 			//echo as html by default
 			else
