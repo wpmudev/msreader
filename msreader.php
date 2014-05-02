@@ -6,7 +6,7 @@ Description: Lets msreader doing the plugins in style!
 Version: 0.1
 Network: false
 Text Domain: wmd_msreader
-Author: WPMUDEV
+Author: WPMU DEV
 Author URI: http://premium.WMD.org/
 WDP ID: 0
 */
