@@ -6,8 +6,10 @@ abstract class WMD_MSReader_Modules {
     var $wpdb;
     var $db_network_posts;
 
+    var $cache_init;
     var $page;
     var $limit;
+    var $limit_sample;
     var $args;
 
 	function __construct() {
@@ -29,6 +31,8 @@ abstract class WMD_MSReader_Modules {
         $this->db_network_terms = apply_filters('msreader_db_network_terms', $this->wpdb->base_prefix.'network_terms');
         $this->db_network_term_rel = apply_filters('msreader_db_network_relationships', $this->wpdb->base_prefix.'network_term_relationships');
         $this->db_network_term_tax = apply_filters('msreader_db_network_taxonomy', $this->wpdb->base_prefix.'network_term_taxonomy');
+        $this->db_blogs = $this->wpdb->base_prefix.'blogs';
+        $this->db_users = $this->wpdb->base_prefix.'users';
 
 		//do the custom init by module
 		$this->init();
@@ -40,16 +44,25 @@ abstract class WMD_MSReader_Modules {
 		return 'error';
     }
 
-    function get_featured_image_html($post) {
-        $content_images_starts = explode('<img', $post->post_content);
+    function get_featured_media_html($post) {
+        $post_content = apply_filters('the_content', $post->post_content);
+        $content_images_starts = explode('<img', $post_content);
 
-        if($content_images_starts){
+        if(isset($content_images_starts[1]) && $content_images_starts[1]){
             $content_image_ends = explode('/>', $content_images_starts[1]);
-            $content_image = '<img'.$content_image_ends[0].'/>';
+            if(isset($content_image_ends[0]) && $content_image_ends[0])
+                $content_media = '<img'.$content_image_ends[0].'/>';
+        }
+        $content_iframe_starts = explode('<iframe', $post_content);
+
+        if($content_iframe_starts && strlen($content_iframe_starts[0]) < strlen($content_images_starts[0])){
+            $content_iframe_ends = explode('</iframe>', $content_iframe_starts[1]);
+            if($content_iframe_ends[0])
+                $content_media = '<iframe'.$content_iframe_ends[0].'</iframe>';
         }
 
-        if(isset($content_image))
-            return '<center>'.$content_image.'</center>';
+        if(isset($content_media))
+            return '<center>'.$content_media.'</center>';
 
         return '';
     }
@@ -57,7 +70,7 @@ abstract class WMD_MSReader_Modules {
     function get_excerpt($post) {
         $max_sentences = 3;
 
-        $content_sentences = explode('.', strip_tags($post->post_content, '<p><strong><a><blockquote><em>'));
+        $content_sentences = explode('.', strip_tags(apply_filters('the_content', $post->post_content), '<p><strong><a><blockquote><em>'));
         $count_fake_sentences = 0;
         foreach ($content_sentences as $sentence) {
             if(!$sentence)
@@ -68,7 +81,7 @@ abstract class WMD_MSReader_Modules {
         if(count($content_sentences)-$count_fake_sentences > $max_sentences)
             $return .= '...';
 
-        return apply_filters('the_content', $return);
+        return $return;
     }
 
     //get limit string

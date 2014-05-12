@@ -2,13 +2,13 @@
 $module = array(
 	'name' => __( 'My Sites', 'wmd_msreader' ),
 	'description' => __( 'Displays posts from users sites', 'wmd_msreader' ),
-	'slug' => 'my-sites', 
+	'slug' => 'my_sites', 
 	'class' => 'WMD_MSReader_Module_MySites'
 );
 
 class WMD_MSReader_Module_MySites extends WMD_MSReader_Modules {
 	function init() {
-		add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_link_to_widget'), 20 );
+		add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_link_to_widget'), 60 );
     }
 
     function add_link_to_widget($widgets) {
@@ -29,13 +29,17 @@ class WMD_MSReader_Module_MySites extends WMD_MSReader_Modules {
         $user_sites_ids = implode(',', $user_sites_ids);
 
     	$query = "
-            SELECT BLOG_ID, ID, post_author, post_date_gmt, post_content, post_title
-            FROM $this->db_network_posts
-            WHERE post_status = 'publish'
-            AND BLOG_ID IN($user_sites_ids)
+            SELECT posts.BLOG_ID AS BLOG_ID, ID, post_author, post_date, post_date_gmt, post_content, post_title
+            FROM $this->db_network_posts AS posts
+            INNER JOIN $this->db_blogs AS blogs ON blogs.blog_id = posts.BLOG_ID
+            WHERE blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
+            AND post_status = 'publish'
+            AND post_password = ''
+            AND posts.BLOG_ID IN($user_sites_ids)
             ORDER BY post_date_gmt DESC
             $limit
         ";
+        $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $user_sites_ids);
         $posts = $this->wpdb->get_results($query);
 
     	return $posts;

@@ -2,11 +2,10 @@
 	<div class="inside">
 		<h2><?php the_title(); ?></h2>
 		<?php 
-		if($post->featured_image_html)
-			echo '<center>'.$post->featured_image_html.'</center>';
-
-		the_excerpt();
+		if($post->featured_media_html)
+			echo $post->featured_media_html;
 		?>
+		<div class="msreader-post-excerpt"><?php the_excerpt(); ?></div>
 
 	</div>
 	<div class="msreader-post-meta">
@@ -14,15 +13,16 @@
 			<?php echo get_avatar($post->post_author, 48); ?>
 
 			<div class="vertical-middle">
-				<?php echo human_time_diff( get_post_time('U', true), current_time('timestamp') ); ?>
+				<?php echo $post->relative_time; ?>
+				<?php _e( 'ago', 'wmd_msreader' ); ?>
 				<?php _e( 'by', 'wmd_msreader' ); ?>
-				<?php the_author(); ?>
+				<?php echo apply_filters('msreader_post_author', get_the_author(), $post); ?>
 				<br/>
 
-				<?php echo $post->blog_details->blogname; ?>
+				<?php echo apply_filters('msreader_post_blog', $post->blog_details->blogname, $post); ?>
 			</div>
 
-			<button class="right button button-primary msreader-open-post"><?php _e( 'Read more', 'wmd_msreader' ); ?></button>
+			<button class="right button button-secondary msreader-open-post"><?php _e( 'Read more', 'wmd_msreader' ); ?></button>
 			<span class="spinner spinner-save"></span>
 		</div>
 	</div>

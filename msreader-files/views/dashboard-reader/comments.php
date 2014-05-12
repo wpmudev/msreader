@@ -54,7 +54,7 @@ class MSReader_Dashboard_Walker_Comment extends Walker_Comment {
 			<?php 
 			}
 			$depth = (isset($msreader_comment_level) && $msreader_comment_level > $depth) ? $msreader_comment_level : $depth;
-			if($depth < $args['max_depth'] && !('0' == $comment->comment_approved && !current_user_can('moderate_comments'))) { ?>
+			if(comments_open( $comment->comment_post_ID ) && $depth < $args['max_depth'] && !('0' == $comment->comment_approved && !current_user_can('moderate_comments'))) { ?>
 			<div class="reply"<?php echo ('0' == $comment->comment_approved) ? ' style="display:none"' : ''; ?>>
 				<button class="comment-replay button button-secondary"><?php _e( 'Reply', 'wmd_msreader' ); ?></button>
 			</div>
@@ -70,16 +70,24 @@ $depth = 1;
 if(get_option('thread_comments'))
 	$depth = get_option('thread_comments_depth');
 
-wp_list_comments(
-	array(
-		'max_depth' => $depth, 
-		'page' => $comments_page, 
-		'per_page' => $comments_limit,
-		'reverse_top_level' => true,
-		'reverse_children'  => true,
-		'format' => 'html5',
-		'walker' => new MSReader_Dashboard_Walker_Comment()
-	), 
-	$comments
-); 
+if(count($comments) > 0)
+	wp_list_comments(
+		array(
+			'max_depth' => $depth, 
+			'page' => $comments_page, 
+			'per_page' => $comments_limit,
+			'reverse_top_level' => true,
+			'reverse_children'  => true,
+			'format' => 'html5',
+			'walker' => new MSReader_Dashboard_Walker_Comment()
+		), 
+		$comments
+	);
+else {
+?>
+<div id="msreader-no-comments">
+	<?php _e( 'No comments yet :(', 'wmd_msreader' ); ?>
+</div>
+<?php
+}
 ?>

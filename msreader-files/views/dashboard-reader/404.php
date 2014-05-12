@@ -1,5 +1,5 @@
-<div class="postbox ">
+<div id="msreader-404" class="postbox">
 	<div class="inside">
-		<?php _e('oh no we have error.', 'wmd_msreader' ); ?>
+		<?php _e('Nothing here yet!', 'wmd_msreader' ); ?>
 	</div>
 </div>

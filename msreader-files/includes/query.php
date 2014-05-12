@@ -2,15 +2,16 @@
 class WMD_MSReader_Query {
 	var $module;
 
+	var $cache_init = 1;
 	var $page = 1;
-	var $limit = 10;
+	var $limit = 5;
 	var $limit_sample = 100;
 	var $args = array();
 
 	var $blog_id;
 	var $post_id;
 	var $comments_page = 1;
-	var $comments_limit = 20;
+	var $comments_limit = 2;
 	var $comments_args = array();
 	var $comment_add_data = array();
 	var $comment_moderate_data = array();
@@ -29,9 +30,10 @@ class WMD_MSReader_Query {
 		$this->module = $module;
 
 		//pass parameters to module
+		$this->module->cache_init = $this->cache_init;
 		$this->module->page = $this->page;
 		$this->module->limit = $this->limit;
-		$this->module->limit_sample = $this->limit;
+		$this->module->limit_sample = $this->limit_sample;
 		$this->module->args = $this->args;
 	}
 
@@ -46,7 +48,7 @@ class WMD_MSReader_Query {
 
 		if($this->module) {
 			//set up secret code for query
-			$query_hash = md5($this->module->details['slug'].$this->page.$this->limit.implode($this->args));
+			$query_hash = md5($this->cache_init.$this->module->details['slug'].$this->page.$this->limit.implode('',$this->args));
 
 			//check if its a query used by everybody
 			$cache_group = (isset($this->module->details['global_cache']) && $this->module->details['global_cache']) ? 'msreader_global' : 'msreader';
@@ -60,22 +62,10 @@ class WMD_MSReader_Query {
 
 				//get some additional details for posts
 				if(is_array($posts))
-					foreach ($posts as $key => $post) {
-						//get blog details
-						if(!isset($blog_details[$post->BLOG_ID]))
-							$blog_details[$post->BLOG_ID] = get_blog_details($post->BLOG_ID);
-						$post->blog_details = $blog_details[$post->BLOG_ID];
+					foreach ($posts as $key => $post)
+						$posts[$key] = $this->set_additional_post_data($post);
 
-						$posts[$key] = $post;
-
-						//set featured image
-						$post->featured_image_html = $this->module->get_featured_image_html($post);
-
-						//change excerpt
-						$post->post_excerpt = $this->module->get_excerpt($post);
-					}
-
-				wp_cache_set('query_'.$query_hash, $posts, $cache_group);
+				wp_cache_set('query_'.$query_hash, $posts, $cache_group, 900);
 			}
 		}
 
@@ -90,6 +80,7 @@ class WMD_MSReader_Query {
 			}
 
 			$post = get_post($this->post_id);
+			$post = $this->set_additional_post_data($post);
 
 			return $post;
 
@@ -105,17 +96,25 @@ class WMD_MSReader_Query {
 				switch_to_blog($this->blog_id);
 			}
 
-			if(!isset($this->comments_args['number']) && isset($this->comments_args['ID']))
-				$this->comments_args['number'] = 1;
-
 			$default_args = array(
 				'order' => 'DESC',
 				'post_id' => $this->post_id,
-				'number' => 50
+				'number' => 999
 			);
+
+			if(!isset($this->comments_args['number']) && isset($this->comments_args['ID']))
+				$this->comments_args['number'] = 1;
+
 			$args = apply_filters('msreader_query_get_comments_args', array_merge($default_args, $this->comments_args));
 
 			$comments = get_comments($args);
+
+			//add fake comments if we removed some for pagination to be correct
+			if(isset($this->comments_args['comments_removed']) && $this->comments_args['comments_removed'] > 0) {
+				for($i =0; $i < $this->comments_args['comments_removed']; $i++){
+				    $comments = array_merge(array($comments[0]), $comments);
+				}			
+			}
 
 			if(isset($restore))
 				restore_current_blog();
@@ -197,10 +196,31 @@ class WMD_MSReader_Query {
 	}
 
 	function get_posts_rss() {
-
 	}
 
 	//Helpers
+
+	//set additional details for post
+	function set_additional_post_data($post) {
+		$post->post_title = stripslashes($post->post_title);
+		$post->post_content = stripslashes($post->post_content);
+
+		//get blog details
+		if(!isset($blog_details[$post->BLOG_ID]))
+			$blog_details[$post->BLOG_ID] = get_blog_details($post->BLOG_ID);
+		$post->blog_details = $blog_details[$post->BLOG_ID];
+
+		//set featured image
+		$post->featured_media_html = $this->module->get_featured_media_html($post);
+
+		//change excerpt
+		$post->post_excerpt = $this->module->get_excerpt($post);
+
+		//set relative time
+		$post->relative_time = human_time_diff( get_post_time('U', true, $post), current_time('timestamp') );
+
+		return $post;
+	}
 
 	//helper that applies moderation action on comments to replies
 	function moderate_comment_action($action, $comment_id = 0) {

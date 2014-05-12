@@ -1,13 +1,13 @@
 <?php
 /*
-Plugin Name: WMD MSReader
+Plugin Name: Reader
 Plugin URI:
-Description: Lets msreader doing the plugins in style!
-Version: 0.1
+Description: Enabled reader that lets users browse posts inside network
+Version: 1
 Network: false
 Text Domain: wmd_msreader
 Author: WPMU DEV
-Author URI: http://premium.WMD.org/
+Author URI: http://premium.wpmudev.org/
 WDP ID: 0
 */
 
@@ -25,13 +25,13 @@ class WMD_MSReader {
 		$this->init();
 
 		add_action( 'plugins_loaded', array($this,'plugins_loaded') );
-		register_activation_hook($this->plugin_main_file, array($this, 'activate'));
+		register_activation_hook($this->plugin['main_file'], array($this, 'activate'));
 
 		add_action('admin_enqueue_scripts', array($this,'register_scripts_styles_admin'));
 		add_action('admin_init', array($this,'admin_init') );
 
 		add_action( 'admin_menu', array($this,'admin_page') );
-		add_action( 'network_admin_menu', array($this,'admin_page') );
+		//add_action( 'network_admin_menu', array($this,'admin_page') );
 
 		//AJAX actions for dashboards
 		add_action( 'wp_ajax_dashboard_display_posts_ajax', array($this, 'dashboard_display_posts_ajax') );
@@ -44,7 +44,6 @@ class WMD_MSReader {
     function init() {
     	//set up all the default options
     	$this->plugin['debug'] = 0;
-    	$this->plugin['mode'] = 'hard';
 
 		$this->plugin['main_file'] = __FILE__;
 		$this->plugin['dir'] = MSREADER_PLUGIN_DIR.'msreader-files/';
@@ -72,34 +71,17 @@ class WMD_MSReader {
 	function load_modules() {
 		global $msreader_modules, $msreader_available_modules;
 
-		$required_module_info = array('slug', 'class', 'name', 'description');
+		$required_module_info = array('slug', 'class', 'name');
 
-		if($this->plugin['mode'] == 'soft') {
-			$modules = array(
-				$this->plugin['dir'].'includes/modules/my-posts.php',
-				$this->plugin['dir'].'includes/modules/trending-tags.php'
-			);
-		}
-		else {
-			//search the dir for files
-			$location = $this->plugin['dir'].'includes/modules/';
-
-			$modules = array();
-			if ( !is_dir( $location ) )
-				return;
-
-			if ( ! $dh = opendir( $location ) )
-				return;
-
-			while ( ( $module = readdir( $dh ) ) !== false ) {
-
-				if ( substr( $module, -4 ) == '.php' )
-				$modules[] = $location . $module;
-			}
-			closedir( $dh );
-			sort( $modules );
-
-		}
+		$modules = array(
+			'my_posts' => $this->plugin['dir'].'includes/modules/my-posts.php',
+			'my_sites' => $this->plugin['dir'].'includes/modules/my-sites.php',
+			'popular_posts' => $this->plugin['dir'].'includes/modules/popular-posts.php',
+			'recent_posts' => $this->plugin['dir'].'includes/modules/recent-posts.php',
+			'trending_tags' => $this->plugin['dir'].'includes/modules/trending-tags.php',
+			'filter_blog_author' => $this->plugin['dir'].'includes/modules/filter-blog-author.php',
+			'search' => $this->plugin['dir'].'includes/modules/search.php'
+		);
 
 		$modules = apply_filters('msreader_load_modules', $modules);
 
@@ -107,6 +89,9 @@ class WMD_MSReader {
 			//simple global array to pass the module data around
 			$module = array();
 
+			if(!file_exists($file))
+				return '';
+			
 			include_once( $file );
 
 			//check if it has all the data
@@ -115,7 +100,7 @@ class WMD_MSReader {
 					$break = 1;
 					break;
 				}
-			if($break)
+			if(isset($break))
 				break;
 
 
@@ -250,18 +235,19 @@ class WMD_MSReader {
 
 		$post = $this->main_query->get_post();
 
-		if(!current_user_can('moderate_comments'))
-			$this->main_query->comments_args = array('status' => 'approve');
-
-		$comments = $this->main_query->get_comments();
-
-		$comments_limit = $this->main_query->comments_limit;
-		$comments_page = $this->main_query->comments_page;
-
-		$current_user_id = get_current_user_id();
-
 		if($post) {
 			setup_postdata($post);
+
+			//set up everything else
+			if(!current_user_can('moderate_comments'))
+				$this->main_query->comments_args = array('status' => 'approve');
+
+			$comments = $this->main_query->get_comments();
+
+			$comments_limit = $this->main_query->comments_limit;
+			$comments_page = $this->main_query->comments_page;
+
+			$current_user_id = get_current_user_id();
 
 			include($this->plugin['dir'].'views/dashboard-reader/content-single.php');
 		}
@@ -287,7 +273,12 @@ class WMD_MSReader {
 		$comments_limit = $this->main_query->comments_limit;
 		$comments_page = $this->main_query->comments_page;
 
+		ob_start();
 		include($this->plugin['dir'].'views/dashboard-reader/comments.php');
+		$html = ob_get_contents();
+		ob_end_clean();
+
+		echo $html;
 
 		if(isset($restore))
 			restore_current_blog();

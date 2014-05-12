@@ -11,17 +11,25 @@
 	<span class="spinner spinner-save"></span>
 	<button class="close dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Close overlay', 'wmd_msreader' ); ?></span></button>
 </div>
-<div class="msreader-post-content-comments">
-	<div class="msreader-post-content">
-		<h3 class="theme-name"><?php the_title(); ?><span class="theme-version"><?php echo get_bloginfo('name'); ?></span></h3>
-		<h4 class="theme-author">By <?php the_author(); ?></h4>
+<div class="msreader-post">
+	<div class="msreader-post-holder">
+		<h3 class="theme-name"><?php the_title(); ?><span class="theme-version msreader-blogname"><?php echo apply_filters('msreader_post_blog', $post->blog_details->blogname, $post); ?></span></h3>
+		<h4 class="theme-author">
+			<?php echo $post->relative_time; ?> 
+			<?php _e( 'ago', 'wmd_msreader' ); ?>
+			<?php _e( 'by', 'wmd_msreader' ); ?>
+			<?php echo apply_filters('msreader_post_author', get_the_author(), $post); ?>
+		</h4>
 		
-		<?php the_content(); ?>
+		<div class="msreader-post-content">
+			<?php the_content(); ?>
+		</div>
 	</div>
-	<div class="msreader-post-comments">
+	<div class="msreader-comments">
 		<?php if(count($comments) > $comments_limit) { ?>
 		<div class="comments-loader">
 			<button class="button button-secondary load-previous-comments"><?php _e('Load Previous Comments', 'wmd_msreader' ); ?></button>
+			<span class="spinner spinner-save"></span>
 		</div>
 		<?php } ?>
 		<div id="the-comment-list" class="comments">
@@ -30,16 +38,23 @@
 	</div>
 
 	<div class="msreader-add-comment">
-		<form action="" method="post" class="add-comment-form">
-			<div class="add-comment-info"><h4><?php _e('Add new comment', 'wmd_msreader' ); ?></h4></div>
-			<p class="comment-form-comment">
-				<textarea id="comment" name="comment_add_data[comment]" cols="44" rows="7" aria-required="true"></textarea>
-			</p>
-			<p class="form-submit">
-				<span class="reply-info" style="display:none;"><small><?php _e('Replay to', 'wmd_msreader' ); ?>:</small> <strong class="reply-parent-name">Trex admin</strong> <small>(<a class="reply-cancel" href="#"><?php _e('cancel', 'wmd_msreader' ); ?></a>)</small></span>
-				<input name="submit" type="button" class="button button-primary right" id="submit" value="Post Comment">
-				<input type="hidden" name="comment_add_data[comment_parent]" id="comment-parent" value="0">
-			</p>
-		</form>
+		<?php if(comments_open( $post->ID )) { ?>
+			<form action="" method="post" class="add-comment-form">
+				<div class="add-comment-info"><h4><?php _e('Add new comment', 'wmd_msreader' ); ?></h4></div>
+				<p class="comment-form-comment">
+					<textarea id="comment" name="comment_add_data[comment]" cols="44" rows="7" aria-required="true"></textarea>
+				</p>
+				<p class="form-submit">
+					<span class="reply-info" style="display:none;"><small><?php _e('Replay to', 'wmd_msreader' ); ?>:</small> <strong class="reply-parent-name">Trex admin</strong> <small>(<a class="reply-cancel" href="#"><?php _e('cancel', 'wmd_msreader' ); ?></a>)</small></span>
+					<input name="submit" type="button" class="button button-primary right" id="submit" value="Post Comment">
+					<span class="spinner spinner-save"></span>
+					<input type="hidden" name="comment_add_data[comment_parent]" id="comment-parent" value="0">
+				</p>
+			</form>
+		<?php } else { ?>
+			<div id="msreader-comments-closed">
+				<?php _e( 'Comments are closed.', 'wmd_msreader' ); ?>
+			</div>
+		<?php } ?>
 	</div>
 </div>

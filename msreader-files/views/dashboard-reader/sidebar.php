@@ -22,6 +22,11 @@ foreach ($sidebar_widgets as $slug => $details) {
 			<div class="inside">
 	<?php 
 	}
+	else {
+	?>
+		<div id="msreader-widget-<?php echo $slug; ?>" class="msreader-widget">
+	<?php
+	}
 	
 	//echo widget data
 	if(isset($details['data']) && is_array($details['data']))
@@ -29,7 +34,7 @@ foreach ($sidebar_widgets as $slug => $details) {
 			//echo as links if links
 			if($type == 'links' && isset($content) && count($content) > 0) {
 				echo '<ul class="links">';
-				foreach ($details['data']['links'] as $priority => $value) {
+				foreach ($content as $priority => $value) {
 					if(!isset($value['title']) || !isset($value['link']))
 						continue;
 					
@@ -44,7 +49,7 @@ foreach ($sidebar_widgets as $slug => $details) {
 			}
 			//echo as html by default
 			else
-				echo isset($details['data']['html']) ? $details['html'] : '';
+				echo $type == 'html' ? $content : '';
 		}
 	elseif(isset($details['data']))
 		echo $details['data'];
@@ -56,7 +61,11 @@ foreach ($sidebar_widgets as $slug => $details) {
 		</div>	
 	<?php
 	}
-
+	else {
+	?>
+		</div>
+	<?php
+	}
 }
 
 do_action('msreader_dashboard_reader_sidebar_bottom');

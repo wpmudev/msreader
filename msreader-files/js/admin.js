@@ -2,6 +2,20 @@
 	var current_post = 0;
 
 	$(document).ready(function() {
+		//handle sticky sidebar on scroll
+		var sidebar = $('.msreader-sidebar');
+		var sidebar_height = sidebar.height();
+		if(sidebar_height > ($(window).height() - $('#msreader-dashboard h2').height() - $('#wpadminbar').height()))
+			sidebar.removeClass('floating');
+		$(window).on('resize', function(){
+			if (sidebar_height > ($(window).height() - $('#msreader-dashboard h2').height() - $('#wpadminbar').height())) {
+				sidebar.removeClass('floating');
+			}
+			else
+				if(!sidebar.hasClass('floating'))
+					sidebar.addClass('floating');
+		});
+
 		//handle main query post loading on scroll
 		msreader_main_query.ajax_loading = 0;
 		msreader_main_query.end = 0;
@@ -9,6 +23,7 @@
 		msreader_main_query.comments_page = parseInt(msreader_main_query.comments_page);
 		msreader_main_query.comments_end = 0;
 		msreader_main_query.comments_offset = 0;
+		msreader_main_query.comments_removed = 0;
 		msreader_main_query.comment_replay_to = 0;
 
 		//load more posts then limit on huge screens
@@ -39,6 +54,7 @@
 		//handle closing of single post
 		$('.msreader-post-overlay').on('click', '.msreader-post-header-navigation .close', function(){
 			$('.msreader-post-overlay').hide();
+			$('body').removeClass('theme-overlay-open');
 		})
 		//handle opening of next post
 		$('.msreader-post-overlay').on('click', '.msreader-post-header-navigation .right', function(){
@@ -56,8 +72,10 @@
 			var post_id = current_post.attr("data-post_id");
 
 			if(blog_id && post_id) {
+				button.parent().find('.spinner').show();
 				comments_args = {
-					offset: msreader_main_query.comments_offset
+					offset: msreader_main_query.comments_offset,
+					comments_removed: msreader_main_query.comments_removed
 				};
 				args = {
 					action: 'dashboard_display_comments_ajax',
@@ -68,12 +86,14 @@
 				};
 
 				$.post(ajaxurl, args, function(response) {
+					button.parent().find('.spinner').hide();
+					console.log(response);
 					if(response && response != 0) {
 						response = $($.parseHTML(response));
 
 						count = response.length;
 						if(count > 0)
-							$('.msreader-post-overlay .msreader-post-comments .comments').prepend(response);
+							$('.msreader-post-overlay .msreader-comments .comments').prepend(response);
 
 						//check if this is last comment
 						if(msreader_main_query.comments_limit > count)
@@ -90,17 +110,29 @@
 		
 		//set replay data
 		$('.msreader-post-overlay').on('click', '.comments .comment-replay', function(){
+			var window_width = msreader_get_window_width();
 			var comment = $(this).parents('.comment-body');
-			var form = $(this).parents('.msreader-post-content-comments').find('.msreader-add-comment');
+			var form = $(this).parents('.msreader-post').find('.msreader-add-comment');
 			var reply_info = form.find('.reply-info');
+			var comment_offset;
 
 			$('.msreader-post-overlay .comments .comment-replay').removeClass('button-primary');
 			$(this).addClass('button-primary');
 			msreader_main_query.comment_replay_to = comment.attr("data-comment_id");
-
+			
 			//scroll to reply comment
-			var comment_offset = $(".msreader-post-comments").scrollTop() + comment.position().top + comment.height() - ($(".msreader-post-comments").height()/2);
-			$(".msreader-post-comments").animate({ scrollTop: comment_offset }, 300, function() {});
+			if(window_width <= 1024) {
+				form.hide();
+					comment.after(form);
+					form.show();
+					comment_offset = $('.msreader-post-holder').height() + form.position().top - comment.height();
+					$('.msreader-post-overlay .msreader-post').scrollTop(comment_offset);
+					
+			}
+			else {
+				comment_offset = $(".msreader-comments").scrollTop() + comment.position().top + comment.height() - ($(".msreader-comments").height()/2);
+				$(".msreader-comments").animate({ scrollTop: comment_offset }, 300);
+			}
 
 			//fade out old text
 			if(reply_info.css('display') == 'inline')
@@ -110,18 +142,29 @@
 			reply_info.delay('200').fadeIn('fast');
 		})
 
-		//set replay data
+		//cancel replay stuff
 		$('.msreader-post-overlay').on('click', '.msreader-add-comment .reply-cancel', function(event){
 			event.preventDefault;
+
+			var window_width = msreader_get_window_width();
 
 			msreader_main_query.comment_replay_to = 0;
 			$(this).parents('.msreader-post-overlay').find('.comments .comment-replay').removeClass('button-primary');
 			$(this).parents('.reply-info').fadeOut('fast');
+
+			if(window_width <= 1024) {
+				var form = $(this).parents('.msreader-add-comment');
+				form.hide();
+				$(this).parents('.msreader-post').find('.msreader-comments').after(form);
+				form.show();
+			}
 		})
 
 		//add comment to post
 		$('.msreader-post-overlay').on('click', '.msreader-add-comment #submit', function(){
-			var form = $(this).parents('.add-comment-form');
+			var window_width = msreader_get_window_width();
+
+			var form = $(this).parents('.msreader-add-comment');
 			var blog_id = current_post.attr("data-blog_id");
 			var post_id = current_post.attr("data-post_id");
 			var article;
@@ -129,13 +172,17 @@
 			var comment_offset;
 
 			if(blog_id && post_id) {
+				form.find('.spinner').show();
+
 				if(msreader_main_query.comment_replay_to) {
 					article = $( 'article[data-comment_id="'+msreader_main_query.comment_replay_to+'"]' ).parent();
 					level = article.parents('ul.children').length;
 					level = level + 2;
 
-					comment_offset = $(".msreader-post-comments").scrollTop() + article.position().top + article.height() - ($(".msreader-post-comments").height()/2);
-					console.log(comment_offset);
+					if(window_width <= 1024)
+						comment_offset = $('.msreader-post-holder').height() + article.position().top + article.height() - ($(".msreader-post-overlay .msreader-post").height()/2);
+					else
+						comment_offset = $(".msreader-comments").scrollTop() + article.position().top + article.height() - ($(".msreader-comments").height()/2);
 				}
 				else
 					level = 1;
@@ -153,39 +200,70 @@
 				};
 
 				$.post(ajaxurl, args, function(response) {
+					form.find('.spinner').hide();
 					if(response && response != 0) {
+						console.log(response);
 						response = $($.parseHTML(response));
+						
 						count = response.length;
-						if(count > 0) {
+						if(count > 0 && response.hasClass('comment')) {
+							$('#msreader-no-comments').remove();
+							//clear out old text in form
+							form.find('#comment').val('');
+
 							if(msreader_main_query.comment_replay_to) {
-								var article_children = article.find('ul.children');
+								var article_children = article.find('ul.children:first');
 
 								if(article_children.length)
 									article_children.append(response.hide());
 								else {
 									article.append('<ul class="children"></ul>');
-									article.find('ul.children').append(response.hide());
+									article.find('ul.children:first').append(response.hide());
 								}
 							}
 							else {
-								$('.msreader-post-comments .comments').append(response);
+								$('.msreader-comments .comments').append(response);
 								msreader_main_query.comments_offset = msreader_main_query.comments_offset +1;
 							}
-							if(!msreader_main_query.comment_replay_to)
-								comment_offset = $(".msreader-post-comments").scrollTop() + response.position().top;
 
-							$(".msreader-post-comments").animate({ scrollTop: comment_offset }, 1000, function() {
+							if(!msreader_main_query.comment_replay_to || response.is('li:last'))
+								comment_offset = $(".msreader-comments").scrollTop() + $(".msreader-comments").height();
+
+							if(window_width <= 1024 && msreader_main_query.comment_replay_to) {
+								form.slideUp(function() {
+									$('.msreader-post-overlay .msreader-post').scrollTop(comment_offset);
+									response.slideDown();
+
+									$(form).parents('.msreader-post').find('.msreader-comments').after(form);
+									form.slideDown();
+
+									//clear out reply stuff
+									if(msreader_main_query.comment_replay_to) {
+										msreader_main_query.comment_replay_to = 0;
+										$('.msreader-post-overlay .comments .comment-replay').removeClass('button-primary');
+									}
+								});
+							}
+							else {
 								response.slideDown();
+								$(".msreader-comments").animate({ scrollTop: comment_offset }, 1000, function() {
+									
 
-								//clear out reply stuff
-								if(msreader_main_query.comment_replay_to) {
-									msreader_main_query.comment_replay_to = 0;
-									$('.msreader-post-overlay .comments .comment-replay').removeClass('button-primary');
-								}
-							});
+									//clear out reply stuff
+									if(msreader_main_query.comment_replay_to) {
+										msreader_main_query.comment_replay_to = 0;
+										$('.msreader-post-overlay .comments .comment-replay').removeClass('button-primary');
+									}
+
+									//clear out old text in form
+									form.find('#comment').val('');
+								});
+							}
 
 							form.find('.reply-info').fadeOut('fast');
 						}
+						else
+							alert(response.text());
 					}
 				});
 			}
@@ -202,11 +280,11 @@
 			var post_id = current_post.attr("data-post_id");
 			var comment_id = comment.attr("data-comment_id");
 			var action = button.attr("data-action");
-			var comment_offset = $(".msreader-post-comments").scrollTop() + comment.position().top + comment.height() - ($(".msreader-post-comments").height()/2);
+			var comment_offset = $(".msreader-comments").scrollTop() + comment.position().top + comment.height() - ($(".msreader-comments").height()/2);
 
 			button.parents('.comment-moderation').addClass('visible');
 			if(blog_id && post_id) {
-				$(".msreader-post-comments").animate({ scrollTop: comment_offset }, '500', function() {
+				$(".msreader-comments").animate({ scrollTop: comment_offset }, '500', function() {
 					
 					var confirmed = 1;
 					var has_replies = 0;
@@ -240,10 +318,12 @@
 						$.post(ajaxurl, args, function(response) {
 							comment.find('.spinner').hide();
 							button.parents('.comment-moderation').removeClass('visible');
-							console.log(response);
+
 							if(response && response != 0) {
 								//lets remove the comment when trashing or spamming
 								if(action == 'trash' || action == 'spam') {
+									if(!comment.parents('.children').length)
+										msreader_main_query.comments_removed = msreader_main_query.comments_removed + 1;
 									if(response == 1)
 										comment_holder.slideUp(function() {
 											comment_holder.remove();
@@ -290,6 +370,8 @@
 			msreader_main_query.comments_page = 1;
 			msreader_main_query.comments_end = 0;
 			msreader_main_query.comment_replay_to = 0;
+			msreader_main_query.comments_offset = 0;
+			msreader_main_query.comments_removed = 0;
 
 			//scroll to post so next posts will load
 			$("html, body").animate({ scrollTop: post.offset().top-$('#wpadminbar').height()-20 });
@@ -303,6 +385,7 @@
 			$.post(ajaxurl, args, function(response) {
 				post.find('.spinner').hide();
 				$('.msreader-post-header-navigation').find('.spinner').hide();
+				$('body').addClass('theme-overlay-open');
 
 				if(response && response != 0) {
 					response = $($.parseHTML(response));
@@ -314,10 +397,10 @@
 					msreader_post_overlay.fadeIn('fast');
 
 					//scroll comments to the bottom
-					$(".msreader-post-comments").scrollTop($('.msreader-post-comments .comments').height());
+					$(".msreader-comments").scrollTop($('.msreader-comments .comments').height());
 
 					//check if this is last comment
-					var count = msreader_post_overlay.find('.msreader-post-comments .comments > li').length;
+					var count = msreader_post_overlay.find('.msreader-comments .comments > li').length;
 					if(msreader_main_query.comments_limit > count)
 						msreader_load_previous_comments_button_action('disable');
 
@@ -371,5 +454,16 @@
 			else
 				msreader_main_query.end = 1;
 		});		
+	}
+
+	function msreader_get_window_width() {
+		var window_width = $(window).width();
+		var width = window.orientation == 0 ? window.screen.width : window.screen.height;
+		if (navigator.userAgent.indexOf('Android') >= 0 && window.devicePixelRatio)
+			width = width / window.devicePixelRatio;
+		if(window_width < width)
+			width = window_width;
+
+		return width;
 	}
 })(jQuery);
