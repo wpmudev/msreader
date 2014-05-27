@@ -14,11 +14,11 @@ class WMD_MSReader_Module_FilterBlogAuthor extends WMD_MSReader_Modules {
     }
 
     function add_author_link($name, $post) {
-        return '<a title="'.__('View all posts by this author', 'wmd_msreader').'" href="'.add_query_arg(array('module' => $this->details['slug'], 'args' => array('author_id' => $post->post_author)), admin_url('index.php?page=msreader.php')).'">'.$name.'</a>';
+        return '<a title="'.__('View all posts by this author', 'wmd_msreader').'" href="'.$this->get_module_dashboard_url(array('author_id' => $post->post_author)).'">'.$name.'</a>';
     }
 
     function add_blog_link($name, $post) {
-        return '<a title="'.__('View all posts on this site', 'wmd_msreader').'" href="'.add_query_arg(array('module' => $this->details['slug'], 'args' => array('blog_id' => $post->blog_details->blog_id)), admin_url('index.php?page=msreader.php')).'">'.$name.'</a>';
+        return '<a title="'.__('View all posts on this site', 'wmd_msreader').'" href="'.$this->get_module_dashboard_url(array('blog_id' => $post->blog_details->blog_id)).'">'.$name.'</a>';
     }
 
     function get_page_title() {

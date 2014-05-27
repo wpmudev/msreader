@@ -8,11 +8,11 @@ $module = array(
 
 class WMD_MSReader_Module_MyPosts extends WMD_MSReader_Modules {
 	function init() {
-		add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_link_to_widget'), 50 );
+		add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_link_to_widget'), 40 );
     }
 
     function add_link_to_widget($widgets) {
-		$widgets['reader']['data']['links'][] = $this->create_link_for_main_widget();
+		$widgets['reader']['data']['list'][] = $this->create_link_for_main_widget();
 
     	return $widgets;
     }

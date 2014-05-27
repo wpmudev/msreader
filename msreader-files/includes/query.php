@@ -2,16 +2,16 @@
 class WMD_MSReader_Query {
 	var $module;
 
-	var $cache_init = 1;
+	var $cache_init = 2;
 	var $page = 1;
-	var $limit = 5;
+	var $limit = 6;
 	var $limit_sample = 100;
 	var $args = array();
 
 	var $blog_id;
 	var $post_id;
 	var $comments_page = 1;
-	var $comments_limit = 2;
+	var $comments_limit = 8;
 	var $comments_args = array();
 	var $comment_add_data = array();
 	var $comment_moderate_data = array();

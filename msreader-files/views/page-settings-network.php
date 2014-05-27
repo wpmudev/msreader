@@ -1,59 +1,86 @@
 <div class="wrap">
 
 	<?php screen_icon(); ?>
-	<h2><?php _e('MSReader', 'wmd_msreader') ?></h2>
-	<form action="settings.php?index.php" method="post" >
+	<h2><?php _e('Reader Settings', 'wmd_msreader') ?></h2>
+	<form action="" method="post" >
 
 		<?php
 		settings_fields('wmd_msreader_options');
-		$options = $this->plugin['options'];
+		$options = $this->plugin['site_options'];
 
 		do_settings_sections('wmd_msreader_options_general');
 		?>
 
-		<h3><?php _e('MSReader settings', 'wmd_msreader') ?></h3>
-		<p><?php _e('MSReader settings description.', 'wmd_msreader') ?></p>
-
 		<table class="form-table">
 			<tr valign="top">
 				<th scope="row">
-					<label for="wmd_msreader_options[select]"><?php _e('MSReader test setting: select', 'wmd_msreader') ?></label>
+					<label for="wmd_msreader_options[location]"><?php _e('Where should the Reader be?', 'wmd_msreader') ?></label>
 				</th>
 
 				<td>
-					<?php
-					$select_options = array( 'value_one' => 'Label One', 'value_two' => 'Label Two' );
+					<label><input name="wmd_msreader_options[location]" type="radio" value="add_under_dashboard" <?php checked( 'add_under_dashboard', $options['location']) ?>> <?php _e('The Reader should be under Dashboard', 'wmd_msreader') ?> > <span class="reader_menu_page">Reader</span></label><br/>
+					<label><input name="wmd_msreader_options[location]" type="radio" value="replace_dashboard_home" <?php checked( 'replace_dashboard_home', $options['location']) ?>> <?php _e('The Reader should replace the default WordPress Dashboard Home page.', 'wmd_msreader') ?></label><br/>
+				</td>
+			</tr>
+
+			<tr valign="top">
+				<th scope="row">
+					<label for="wmd_msreader_options[name]"><?php _e('Whats The Reader page name?', 'wmd_msreader') ?></label>
+				</th>
+
+				<td>
+					<input type="text" class="regular-text ltr" name="wmd_msreader_options[name]" value="<?php echo stripslashes(esc_attr($options['name'])); ?>" />
+					<p class="description"><?php _e('This is the name that will be visible in menu', 'wmd_msreader') ?></p>
+				</td>
+			</tr>
+
+			<tr valign="top">
+				<th scope="row">
+					<label for="wmd_msreader_options[modules]"><?php _e('Which features would you like to enable for The Reader?', 'wmd_msreader') ?></label>
+				</th>
+
+				<td>
+					<?php 
+					foreach ($this->available_modules as $slug => $module) {
+						$current = isset($options['modules'][$module['slug']]) ? $options['modules'][$module['slug']] : 0;
+						echo '<label><input name="wmd_msreader_options[modules]['.$module['slug'].']" data-module="'.$module['slug'].'" class="wmd_msreader_options_modules" type="checkbox" value="true" '.checked( 'true', $current, 0).'> '.$module['name'].' - '.$module['description'].'.</label>';
+						$module_options = isset($this->plugin['site_options']['modules_options'][$slug]) ? $this->plugin['site_options']['modules_options'][$slug] : array();
+						$module_options = apply_filters('msreader_module_options_'.$module['slug'], '', $module_options);
+						if($module_options && count($this->plugin['site_options']['modules_options'][$slug])) {
+							echo ' <button class="button button-secondary open-module-options" data-module="'.$slug.'" href="#">'.__('Configure', 'wmd_msreader').'</button>';
+							echo '<div data-module="'.$slug.'" class="sub-options">'.$module_options.'</div>';
+						}
+						echo '<br/>';
+					}
 					?>
-					<select name="wmd_msreader_options[select]">
-						<?php $this->helpers->the_select_options($select_options, $options['select']); ?>
-					</select>
 				</td>
 			</tr>
-
 			<tr valign="top">
 				<th scope="row">
-					<label for="wmd_msreader_options[text]"><?php _e('MSReader test setting: text', 'wmd_msreader') ?></label>
+					<label for="wmd_msreader_options[location]"><?php _e('Which feature is default on The Reader page?', 'wmd_msreader') ?></label>
 				</th>
 
 				<td>
-					<input type="text" class="regular-text ltr" name="wmd_msreader_options[text]" value="<?php echo esc_attr($options['text']); ?>" />
-					<p class="description"><?php _e('Description', 'wmd_msreader') ?></p>
-				</td>
-			</tr>
+					<?php 
+					if($options['modules'] && is_array($options['modules'])) {
+						echo '<select id="wmd_msreader_options_default_module" name="wmd_msreader_options[default_module]">';
+						foreach ($this->available_modules as $slug => $module) {
+							if(isset($this->available_modules[$module['slug']]['can_be_default']) && $this->available_modules[$module['slug']]['can_be_default'] == false)
+								continue;
 
-			<tr valign="top">
-				<th scope="row">
-					<label for="wmd_msreader_options[text]"><?php _e('MSReader test setting: textarea', 'wmd_msreader') ?></label>
-				</th>
-
-				<td>
-					<textarea class="large-text ltr" name="wmd_msreader_options[textarea]" /><?php echo esc_textarea($options['textarea']); ?></textarea>
-					<p class="description"><?php _e('Description', 'wmd_msreader') ?></p>
+							$display = !$this->is_module_enabled($module['slug']) ? ' style="display: none;"' : '';
+							echo '<option value="'.$module['slug'].'" data-module="'.$module['slug'].'" '.$display.selected( $options['default_module'], $module['slug'], false ).'>'.$module['name'].'</option>';
+						}
+						echo '</select>';
+					}
+					?>
+					<p class="description"><?php _e('This is the default feature that will be used when The Reader page is opened', 'wmd_msreader') ?></p>
 				</td>
 			</tr>
 		</table>
+
 		<p class="submit">
-			<input type="submit" class="button-primary" value="<?php _e('Save Changes', 'wmd_msreader') ?>" />
+			<input type="submit" class="button button-primary" value="<?php _e('Save Changes', 'wmd_msreader') ?>" />
 		</p>
 	</form>
 

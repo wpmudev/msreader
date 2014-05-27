@@ -1,12 +1,16 @@
 <div class="postbox msreader-post" data-blog_id="<?php echo $post->BLOG_ID ?>" data-post_id="<?php echo get_the_ID(); ?>">
-	<div class="inside">
-		<h2><?php the_title(); ?></h2>
-		<?php 
-		if($post->featured_media_html)
-			echo $post->featured_media_html;
-		?>
-		<div class="msreader-post-excerpt"><?php the_excerpt(); ?></div>
+	<div class="msreader-post-content">
+		<div class="inside">
+			<h2><?php the_title(); ?></h2>
+			<?php 
+			if($post->featured_media_html)
+				echo $post->featured_media_html;
+			?>
+			<div class="msreader-post-excerpt">
+				<?php echo $post->post_excerpt; ?>
+			</div>
 
+		</div>
 	</div>
 	<div class="msreader-post-meta">
 		<div class="inside">
@@ -22,7 +26,11 @@
 				<?php echo apply_filters('msreader_post_blog', $post->blog_details->blogname, $post); ?>
 			</div>
 
-			<button class="right button button-secondary msreader-open-post"><?php _e( 'Read more', 'wmd_msreader' ); ?></button>
+			<?php 
+			echo apply_filters('msreader_read_more_button', 
+			'<button class="right button button-secondary msreader-open-post">'. __( 'Read more', 'wmd_msreader' ) .'</button>', 
+			$post); 
+			?>
 			<span class="spinner spinner-save"></span>
 		</div>
 	</div>

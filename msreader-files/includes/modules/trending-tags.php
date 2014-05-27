@@ -4,19 +4,24 @@ $module = array(
 	'description' => __( 'Displays trending tags', 'wmd_msreader' ),
 	'slug' => 'trending_tags', 
 	'class' => 'WMD_MSReader_Module_TrendingTags',
-    'can_be_default' => false
+    'can_be_default' => false,
+    'default_options' => array(
+        'widget_links_limit' => 5
+    )
 );
 
 class WMD_MSReader_Module_TrendingTags extends WMD_MSReader_Modules {
 
 	function init() {
 		add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_widget'), 20 );
+
+        add_filter( 'msreader_module_options_'.$this->details['slug'], array($this,'add_options_html'), 10, 2 );
     }
 
     function add_widget($widgets) {
         $limit_sample_total = 100;
     	$limit_sample = $this->get_limit($limit_sample_total, 1);
-    	$limit_links = apply_filters('msreader_module_'.$this->details['slug'].'_widget_links_limit', 5); 
+    	$limit_links = $this->options['widget_links_limit']; 
     	$limit = $this->get_limit($limit_links, 1);
 
 		$query_hash = md5($this->cache_init.$this->details['slug'].$limit_sample_total.$limit_links);
@@ -49,7 +54,7 @@ class WMD_MSReader_Module_TrendingTags extends WMD_MSReader_Modules {
         foreach ($top_tags as $tag)
         	$top_tags_ready[] = array('args' => $tag['id'],'title' => $tag['name']);
 
-    	$widgets['trending-tags'] = $this->create_links_widget($top_tags_ready);
+    	$widgets['trending-tags'] = $this->create_list_widget($top_tags_ready);
 
     	return $widgets;
     }
@@ -89,5 +94,12 @@ class WMD_MSReader_Module_TrendingTags extends WMD_MSReader_Modules {
         $posts = $this->wpdb->get_results($query);
 
     	return $posts;
+    }
+
+    function add_options_html($blank, $options) {
+        return '
+            <label for="wmd_msreader_options[name]">'.__( 'Number of links in "Trending Tags" widget', 'wmd_msreader' ).'</label><br/>
+            <input type="number" class="small-text ltr" name="wmd_msreader_options[modules_options]['.$this->details['slug'].'][widget_links_limit]" value="'.$options['widget_links_limit'].'" />
+        ';
     }
 }

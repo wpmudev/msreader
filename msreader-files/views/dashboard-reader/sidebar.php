@@ -32,18 +32,21 @@ foreach ($sidebar_widgets as $slug => $details) {
 	if(isset($details['data']) && is_array($details['data']))
 		foreach ($details['data'] as $type => $content) {
 			//echo as links if links
-			if($type == 'links' && isset($content) && count($content) > 0) {
-				echo '<ul class="links">';
+			if($type == 'list' && isset($content) && count($content) > 0) {
+				echo '<ul class="list">';
 				foreach ($content as $priority => $value) {
-					if(!isset($value['title']) || !isset($value['link']))
+					if(!isset($value['title']))
 						continue;
 					
 					//check for active url so class can be added
 					$link_query = parse_url($value['link']);
-					$link_query = $link_query['query'];
-					$active = ($link_query == $_SERVER['QUERY_STRING']) ? ' class="active"' : '';
-
-					echo '<li'.$active.'><a href="'.$value['link'].'">'.$value['title'].'</a></li>';
+					$link_query = isset($link_query['query']) ? $link_query['query'] : '';
+					if(isset($value['link'])){
+						$active = (strpos($_SERVER['QUERY_STRING'], $link_query) !== false || (strpos($link_query,'module='.$this->plugin['site_options']['default_module']) !== false) && !isset($_GET['module'])) ? ' class="active"' : '';
+						echo '<li'.$active.'>'.(isset($value['before']) ? $value['before'] : '').'<a href="'.$value['link'].'">'.$value['title'].'</a>'.(isset($value['after']) ? $value['after'] : '').'</li>';
+					}
+					else
+						echo '<li>'.(isset($value['before']) ? $value['before'] : '').$value['title'].(isset($value['after']) ? $value['after'] : '').'</li>';
 				}
 				echo '</ul>';
 			}

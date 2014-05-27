@@ -8,11 +8,11 @@ $module = array(
 
 class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
 	function init() {
-		add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_link_to_widget'), 30 );
+		add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_link_to_widget'), 20 );
     }
 
     function add_link_to_widget($widgets) {
-		$widgets['reader']['data']['links'][] = $this->create_link_for_main_widget();
+		$widgets['reader']['data']['list'][] = $this->create_link_for_main_widget();
 
     	return $widgets;
     }
@@ -34,7 +34,7 @@ class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
                 ORDER BY post_date_gmt DESC
                 $limit_sample
             ) a
-            WHERE comment_count > 8
+            WHERE comment_count > 5
             ORDER BY post_date_gmt DESC
             $limit
         ";

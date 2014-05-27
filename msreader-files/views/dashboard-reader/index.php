@@ -6,7 +6,7 @@
 	<div id="poststuff">
 		<div id="post-body" class="metabox-holder columns-2">
 
-			<div id="postbox-container-1" class="postbox-container msreader-sidebar floating">
+			<div id="postbox-container-1" class="postbox-container msreader-sidebar">
 				<?php include_once('sidebar.php'); ?>
 			</div>
 
@@ -27,7 +27,10 @@
 					$html = $posts;
 					include('content-page.php');
 				}
-				?>		
+				?>
+				<div class="msreader-post-loader">
+					<img alt="<?php _e( 'Loading...', 'wmd_msreader' ); ?>" src="<?php echo includes_url('images/spinner-2x.gif'); ?>"/>
+				</div>
 			</div>
 
 		</div>

@@ -1,7 +1,28 @@
 .vertical-middle {
 	vertical-align: middle;
 	display: inline-block;
-	line-height: 1.4em;
+	line-height: 1.7em;
+}
+/*used with .add-new-h2 */
+.button-small {
+	padding: 1px 4px !important;
+	font-size: 11px !important;
+	top: 1px !important;
+	text-decoration: none;
+	border: 0;
+	-webkit-border-radius: 2px;
+	border-radius: 2px;
+	background: #e0e0e0;
+	text-shadow: none;
+	font-weight: 600;
+}
+.button-small:hover {
+	background: #2ea2cc;
+	color: #fff;
+}
+
+#msreader-dashboard {
+	max-width: 900px;
 }
 /*SIDEBAR*/
 .msreader-sidebar.floating {
@@ -23,6 +44,10 @@
 	font-weight: bold;
 }
 /*POST LIST*/
+.msreader-post-loader {
+	text-align: center;
+	display: none;
+}
 #msreader-dashboard h2 span {
 	color: #00a065;
 }
@@ -33,7 +58,7 @@
 	margin: 0px 0 12px 0;
 	padding: 0;
 }
-#msreader-dashboard img, .msreader-post-overlay img {
+.msreader-post-content img {
 	max-width: 100%;
 	height: auto;
 	float: none;

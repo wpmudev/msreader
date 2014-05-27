@@ -12,12 +12,20 @@ abstract class WMD_MSReader_Modules {
     var $limit_sample;
     var $args;
 
-	function __construct() {
+    var $options;
+
+    var $message;
+    var $message_type;
+
+	function __construct($options = array()) {
 		global $msreader_available_modules, $wpdb;
 
 		//set module details
-		end($msreader_available_modules);
+        end($msreader_available_modules);
 		$this->details = $msreader_available_modules[key($msreader_available_modules)];
+
+        //set options for module
+        $this->options = $options;
 
 		//sets default unnecessary data
 		if(!isset($this->details['page_title']))
@@ -62,24 +70,114 @@ abstract class WMD_MSReader_Modules {
         }
 
         if(isset($content_media))
-            return '<center>'.$content_media.'</center>';
+            return '<div class="msreader_featured_media"><center>'.$content_media.'</center></div>';
 
         return '';
     }
 
     function get_excerpt($post) {
-        $max_sentences = 3;
+        $max_sentences = 5;
+        $max_words = 175;
+        $max_paragraphs = 3;
 
-        $content_sentences = explode('.', strip_tags(apply_filters('the_content', $post->post_content), '<p><strong><a><blockquote><em>'));
-        $count_fake_sentences = 0;
-        foreach ($content_sentences as $sentence) {
-            if(!$sentence)
-                $count_fake_sentences ++;
+        if(class_exists('DOMDocument')) {
+            $allowed_tags = array('<strong>','<blockquote>','<em>','<p>', '<span>', '<a>');
+            
+            $post_content = strip_tags($post->post_content, implode('', $allowed_tags));
+            $post_content = apply_filters('the_content', $post_content);
+            
+            $dom = new DOMDocument();
+            $dom->loadHTML('<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /></head><body>'.$post_content.'</body></html>');
+            $elements = $dom->documentElement;
+            $all_elements = $elements->getElementsByTagName('*');
+
+            $current_paragraphs = 0;
+            $current_sentences = 0;
+            $limit_reached = 0;
+            $remove_childs = array();
+            foreach($all_elements as $key => $child) {
+                if($child->nodeName == 'html' || $child->nodeName == 'body' || $child->nodeName == 'meta' || $child->nodeName == 'head')
+                    continue;
+
+                if($limit_reached || str_replace(array(' ', '&nbsp;'), '', trim($child->textContent)) == '')
+                    $remove_childs[] = $child;
+                else {
+                    //count sentences 
+                    $content_sentences = explode('.', $child->textContent);
+                    $count_content_sentences = count($content_sentences);
+
+                    if($count_content_sentences) {
+                        //ditch fake sentences
+                        $count_fake_sentences = 0;
+                        foreach ($content_sentences as $sentence) {
+                            $sentence_length = strlen($sentence);
+                            if(!$sentence || strlen(str_replace (' ', '', $sentence)) == $sentence_length )
+                                $count_fake_sentences ++;
+                        }
+                        $current_sentences = $current_sentences + $count_content_sentences - $count_fake_sentences;
+                    }
+                    else
+                        if(str_word_count($child->textContent) > 3)
+                            $current_sentences ++;
+
+                    //count paragraph
+                    if($child->nodeName == 'p')
+                        $current_paragraphs ++;
+
+                    //check if limit reached
+                    if(!$limit_reached && ($current_paragraphs >= $max_paragraphs || $current_sentences >= $max_sentences)) {
+                        $last_child = $child;
+                        $limit_reached = 1;
+                    }
+                }
+            }
+            foreach ($remove_childs as $child) {
+                $child->parentNode->removeChild($child);
+            }
+
+            $return = $dom->saveHTML();
+            if($limit_reached)
+                $return .= '...';   
         }
+        else {
+            $allowed_tags = array('<strong>','<blockquote>','<em>','<p>', '<span>');
 
-        $return = implode('.', array_slice($content_sentences, 0, $max_sentences + $count_fake_sentences));
-        if(count($content_sentences)-$count_fake_sentences > $max_sentences)
-            $return .= '...';
+            $post_content = strip_tags($post->post_content, implode('', $allowed_tags));
+            $post_content = apply_filters('the_content', $post_content);
+
+            $content_sentences = explode('.', strip_tags($post_content, implode('',$allowed_tags)));
+            
+            //ditch fake sentences
+            $count_fake_sentences = 0;
+            foreach ($content_sentences as $sentence) {
+                $sentence_length = strlen($sentence);
+                if(
+                    !$sentence || 
+                    strlen(str_replace (' ', '', $sentence)) == $sentence_length
+                )
+                    $count_fake_sentences ++;
+            }
+
+            //limit to max sentences
+            $return = implode('.', array_slice($content_sentences, 0, $max_sentences + $count_fake_sentences));
+
+            //limit to total word count
+            $words = explode(" ",strip_tags($return));
+            if(count($words) > $max_words)
+                $return = implode(" ",array_slice($words,0,$max_words));
+
+            //check if content was stripped
+            if(count($content_sentences)-$count_fake_sentences > $max_sentences || count($words) > $max_words)
+                $return .= '...';   
+
+            //close all allowed tags
+            foreach ($allowed_tags as $tag) {
+                $closing_tag = str_replace('<', '</', $tag);
+                $open_close_difference = substr_count($return, $tag) - substr_count($return, $closing_tag);
+                for($i =0; $i < $open_close_difference; $i++)
+                    $return .=  $closing_tag;
+            }
+        }
 
         return $return;
     }
@@ -103,6 +201,20 @@ abstract class WMD_MSReader_Modules {
 		return $this->details['page_title'];
     }
 
+    //get limit string
+    function get_module_dashboard_url($args = array(), $module_slug = '') {
+        $module_slug = $module_slug ? $module_slug : $this->details['slug'];
+
+        $url = admin_url('index.php?page=msreader.php&module='.$module_slug);
+        if(is_array($args) && count($args) > 0)
+            $url = add_query_arg(array('args' => $args), $url);
+
+        $url = apply_filters('msreader_module_dashboard_url_'.$this->details['slug'], $url, $args);
+        $url = apply_filters('msreader_module_dashboard_url', $url, $args);
+
+        return $url;
+    }
+
     //easily adds link to main widget
     function create_link_for_main_widget() {
 		$link = array(
@@ -114,7 +226,7 @@ abstract class WMD_MSReader_Modules {
     }
 
     //lets you create links widget for module by providing array with arrays with "arg"(argument that will be added at the end), "title" or optionaly full link by "link"
-    function create_links_widget($links) {
+    function create_list_widget($links, $widget_details = array()) {
     	foreach ($links as $position => $data) {
     		if(isset($data['args'])){
     			$data['link'] = add_query_arg(array('module' => $this->details['slug'], 'args' => $data['args']));
@@ -124,9 +236,11 @@ abstract class WMD_MSReader_Modules {
 		$widget = array(
     		'title' => $this->details['menu_title'], 
     		'data' => array(
-    			'links' => $links
+    			'list' => $links
     		)
     	);
+
+        $widget = array_replace_recursive($widget, $widget_details);
 
 		return $widget;
     }

@@ -5,15 +5,18 @@
 		//handle sticky sidebar on scroll
 		var sidebar = $('.msreader-sidebar');
 		var sidebar_height = sidebar.height();
+		var sidebar_position_top = sidebar.position().top;
 		if(sidebar_height > ($(window).height() - $('#msreader-dashboard h2').height() - $('#wpadminbar').height()))
 			sidebar.removeClass('floating');
-		$(window).on('resize', function(){
-			if (sidebar_height > ($(window).height() - $('#msreader-dashboard h2').height() - $('#wpadminbar').height())) {
-				sidebar.removeClass('floating');
+		$(window).on('scroll resize', function(){
+			console.log($(window).width());
+			if($(window).width() > 850 && $(window).scrollTop() >= sidebar_position_top && sidebar_height < ($(window).height() - $('#wpadminbar').height())) {
+				//if(!sidebar.hasClass('floating')) {
+					sidebar.removeClass('floating').css('top', $('#wpadminbar').height()).css('left', sidebar.position().left + parseInt($('#wpcontent').css('margin-left'))).addClass('floating');
+				//}
 			}
 			else
-				if(!sidebar.hasClass('floating'))
-					sidebar.addClass('floating');
+				sidebar.removeClass('floating');
 		});
 
 		//handle main query post loading on scroll
@@ -431,6 +434,8 @@
 	function msreader_display_posts_ajax() {
 		msreader_main_query.ajax_loading = 1;
 
+		$('.msreader-post-loader').show();
+
 		args = {
 			action: 'dashboard_display_posts_ajax',
 			page: msreader_main_query.page + 1,
@@ -439,11 +444,12 @@
 		};
 
 		$.post(ajaxurl, args, function(response) {
+			$('.msreader-post-loader').hide();
 			if(response && response != 0) {
 				response = $($.parseHTML(response));
 				count = response.length;
 				if(count > 0)
-					$('.msreader-posts').append(response);
+					$('.msreader-post-loader').before(response);
 
 				if(msreader_main_query.limit > count)
 					msreader_main_query.end = 1;
