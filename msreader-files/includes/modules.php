@@ -1,16 +1,15 @@
 <?php
 //Class with default functions for all modules. Fast to use and easy to customize
 abstract class WMD_MSReader_Modules {
-	var $module;
-
-    var $wpdb;
     var $db_network_posts;
 
-    var $cache_init;
     var $page;
     var $limit;
     var $limit_sample;
     var $args;
+    var $cache_init;
+    var $main = 0;
+    var $query_hashes = array();
 
     var $options;
 
@@ -33,26 +32,47 @@ abstract class WMD_MSReader_Modules {
 		if(!isset($this->details['menu_title']))
 			$this->details['menu_title'] = $this->details['name'];
 
+        if(!isset($this->details['global_cache']))
+            $this->details['global_cache'] = false;
+        if(!isset($this->details['disable_cache']))
+            $this->details['disable_cache'] = false;
+        if(!isset($this->details['cache_time']))
+            $this->details['cache_time'] = '';
+
         //set DB details
-        $this->wpdb = $wpdb;
-        $this->db_network_posts = apply_filters('msreader_db_network_posts', $this->wpdb->base_prefix.'network_posts');
-        $this->db_network_terms = apply_filters('msreader_db_network_terms', $this->wpdb->base_prefix.'network_terms');
-        $this->db_network_term_rel = apply_filters('msreader_db_network_relationships', $this->wpdb->base_prefix.'network_term_relationships');
-        $this->db_network_term_tax = apply_filters('msreader_db_network_taxonomy', $this->wpdb->base_prefix.'network_term_taxonomy');
-        $this->db_blogs = $this->wpdb->base_prefix.'blogs';
-        $this->db_users = $this->wpdb->base_prefix.'users';
+        $this->db_network_posts = apply_filters('msreader_db_network_posts', $wpdb->base_prefix.'network_posts');
+        $this->db_network_terms = apply_filters('msreader_db_network_terms', $wpdb->base_prefix.'network_terms');
+        $this->db_network_term_rel = apply_filters('msreader_db_network_relationships', $wpdb->base_prefix.'network_term_relationships');
+        $this->db_network_term_tax = apply_filters('msreader_db_network_taxonomy', $wpdb->base_prefix.'network_term_taxonomy');
+        $this->db_blogs = $wpdb->base_prefix.'blogs';
+        $this->db_users = $wpdb->base_prefix.'users';
 
 		//do the custom init by module
 		$this->init();
     }
     abstract function init();
 
+    function load_module() {}
+
     //This function needs to be replaced to display proper data - data is automatically cached for this one
     function query() {
 		return 'error';
     }
 
+    //by default page title is module title
+    function get_page_title() {
+        return $this->details['page_title'];
+    }
+
+    //by default page title is module title
+    function get_empty_message() {
+        return __('Nothing here yet!', 'wmd_msreader' );
+    }
+
     function get_featured_media_html($post) {
+        global $wp_embed;
+
+        $wp_embed->cache_oembed( $post->ID ) ;
         $post_content = apply_filters('the_content', $post->post_content);
         $content_images_starts = explode('<img', $post_content);
 
@@ -70,15 +90,18 @@ abstract class WMD_MSReader_Modules {
         }
 
         if(isset($content_media))
-            return '<div class="msreader_featured_media"><center>'.$content_media.'</center></div>';
+            return $content_media;
 
         return '';
     }
 
     function get_excerpt($post) {
+        global $wp_embed;
+
         $max_sentences = 5;
-        $max_words = 175;
         $max_paragraphs = 3;
+
+        $wp_embed->cache_oembed( $post->ID );
 
         if(class_exists('DOMDocument')) {
             $allowed_tags = array('<strong>','<blockquote>','<em>','<p>', '<span>', '<a>');
@@ -126,6 +149,7 @@ abstract class WMD_MSReader_Modules {
 
                     //check if limit reached
                     if(!$limit_reached && ($current_paragraphs >= $max_paragraphs || $current_sentences >= $max_sentences)) {
+                        $child->nodeValue = $child->nodeValue.'...';
                         $last_child = $child;
                         $limit_reached = 1;
                     }
@@ -136,46 +160,61 @@ abstract class WMD_MSReader_Modules {
             }
 
             $return = $dom->saveHTML();
-            if($limit_reached)
-                $return .= '...';   
         }
         else {
-            $allowed_tags = array('<strong>','<blockquote>','<em>','<p>', '<span>');
+            $allowed_tags = array('<strong>','<blockquote>','<em>','<p>','<a>');
 
             $post_content = strip_tags($post->post_content, implode('', $allowed_tags));
             $post_content = apply_filters('the_content', $post_content);
 
             $content_sentences = explode('.', strip_tags($post_content, implode('',$allowed_tags)));
-            
-            //ditch fake sentences
-            $count_fake_sentences = 0;
-            foreach ($content_sentences as $sentence) {
-                $sentence_length = strlen($sentence);
-                if(
-                    !$sentence || 
-                    strlen(str_replace (' ', '', $sentence)) == $sentence_length
-                )
-                    $count_fake_sentences ++;
+            $content_text_length = strip_tags($post->post_content);
+
+
+
+            if(strlen($content_text_length) > 1000 && count($content_sentences) == 1) {
+                $return = substr($content_text_length, 0, 1000).'...'; 
             }
+            else {
 
-            //limit to max sentences
-            $return = implode('.', array_slice($content_sentences, 0, $max_sentences + $count_fake_sentences));
+                //ditch fake sentences
+                $count_content_sentences_real = 0;
+                $content_sentences_clean = array();
+                foreach ($content_sentences as $sentence) {
+                    $sentence_length = strlen($sentence);
+                    if(
+                        !(!$sentence || 
+                        strlen(str_replace (' ', '', $sentence)) == $sentence_length || 
+                        substr($sentence, 0, 1) != ' ')
+                    )
+                        $count_content_sentences_real ++;
 
-            //limit to total word count
-            $words = explode(" ",strip_tags($return));
-            if(count($words) > $max_words)
-                $return = implode(" ",array_slice($words,0,$max_words));
+                    $content_sentences_clean[] = $sentence;
 
-            //check if content was stripped
-            if(count($content_sentences)-$count_fake_sentences > $max_sentences || count($words) > $max_words)
-                $return .= '...';   
+                    if($count_content_sentences_real == $max_sentences)
+                        break;
+                }
 
-            //close all allowed tags
-            foreach ($allowed_tags as $tag) {
-                $closing_tag = str_replace('<', '</', $tag);
-                $open_close_difference = substr_count($return, $tag) - substr_count($return, $closing_tag);
-                for($i =0; $i < $open_close_difference; $i++)
-                    $return .=  $closing_tag;
+                //limit to max sentences
+                $return = implode('.', $content_sentences_clean);
+
+                //limit to total paragraphs
+                $return = str_replace('<p></p>', '', $return);
+                $paragraphs = explode('</p>', $return);
+                $return = implode('</p>', array_slice($paragraphs, 0, $max_paragraphs));
+
+                //check if content was stripped
+                if($count_content_sentences_real == $max_sentences || count($paragraphs) > $max_paragraphs)
+                    $return .= '...';   
+
+                //close all allowed tags
+                foreach ($allowed_tags as $tag) {
+                    $opening_tag = str_replace('>', '', $tag);
+                    $closing_tag = str_replace('<', '</', $tag);
+                    $open_close_difference = substr_count($return, $opening_tag) - substr_count($return, $closing_tag);
+                    for($i =0; $i < $open_close_difference; $i++)
+                        $return .=  $closing_tag;
+                }
             }
         }
 
@@ -196,10 +235,6 @@ abstract class WMD_MSReader_Modules {
             return 'LIMIT 0,10';
     }
 
-    //by default page title is module title
-    function get_page_title() {
-		return $this->details['page_title'];
-    }
 
     //get limit string
     function get_module_dashboard_url($args = array(), $module_slug = '') {
@@ -216,9 +251,9 @@ abstract class WMD_MSReader_Modules {
     }
 
     //easily adds link to main widget
-    function create_link_for_main_widget() {
+    function create_link_for_main_widget($title_after = '') {
 		$link = array(
-				'title' => $this->details['menu_title'], 
+				'title' => $this->details['menu_title'].$title_after, 
 				'link' => add_query_arg(array('module' => $this->details['slug'], 'args' => false))
 			);
 

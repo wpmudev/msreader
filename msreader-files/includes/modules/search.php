@@ -4,7 +4,8 @@ $module = array(
 	'description' => __( 'Allows for searching posts', 'wmd_msreader' ),
 	'slug' => 'search', 
 	'class' => 'WMD_MSReader_Module_Search',
-    'can_be_default' => false
+    'can_be_default' => false,
+    'global_cache' => true
 );
 
 class WMD_MSReader_Module_Search extends WMD_MSReader_Modules {
@@ -69,45 +70,60 @@ class WMD_MSReader_Module_Search extends WMD_MSReader_Modules {
     }
 
     function query() {
-        $limit = $this->get_limit();
+        global $wpdb;
 
-        //set title search as default
-        if(!isset($this->args['search_author']) && !isset($this->args['search_tag']) && !isset($this->args['search_title']))
-            $this->args['search_title'] = 1;
-    	
-        $query = "
-            SELECT posts.BLOG_ID AS BLOG_ID, posts.ID AS ID, post_author, post_date, post_date_gmt, post_content, post_title
-            FROM $this->db_network_posts AS posts
-            INNER JOIN $this->db_blogs AS blogs ON blogs.blog_id = posts.BLOG_ID";
-        if(isset($this->args['search_tag']) && $this->args['search_tag'])
-            $query .= "  
-                LEFT JOIN $this->db_network_term_rel AS b ON (b.object_id = posts.ID AND b.blog_id = posts.BLOG_ID)
-                LEFT JOIN $this->db_network_terms AS c ON (c.term_id = b.term_taxonomy_id)";
-        if(isset($this->args['search_author']) && $this->args['search_author'])
+        $blocked_words = apply_filters('msreader_'.$this->details['slug'].'_blocked_words', array());
+        $search_words = explode(' ', $this->args['search_value']);
+        $blocked = 0;
+        foreach ($search_words as $search_word)
+            if(in_array(trim($search_word), $blocked_words)) {
+                $blocked = 1;
+                break;
+            }
+
+        if(!$blocked) {
+            $limit = $this->get_limit();
+
+            //set title search as default
+            if(!isset($this->args['search_author']) && !isset($this->args['search_tag']) && !isset($this->args['search_title']))
+                $this->args['search_title'] = 1;
+        	
+            $query = "
+                SELECT posts.BLOG_ID AS BLOG_ID, posts.ID AS ID, post_author, post_date, post_date_gmt, post_content, post_title
+                FROM $this->db_network_posts AS posts
+                INNER JOIN $this->db_blogs AS blogs ON blogs.blog_id = posts.BLOG_ID";
+            if(isset($this->args['search_tag']) && $this->args['search_tag'])
+                $query .= "  
+                    LEFT JOIN $this->db_network_term_rel AS b ON (b.object_id = posts.ID AND b.blog_id = posts.BLOG_ID)
+                    LEFT JOIN $this->db_network_terms AS c ON (c.term_id = b.term_taxonomy_id)";
+            if(isset($this->args['search_author']) && $this->args['search_author'])
+                $query .= "
+                    LEFT JOIN $this->db_users AS d ON (d.ID = posts.post_author)";
             $query .= "
-                LEFT JOIN $this->db_users AS d ON (d.ID = posts.post_author)";
-        $query .= "
-            WHERE blogs.public = 1 AND blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
-            AND post_status = 'publish'
-            AND post_password = ''
-            ";
+                WHERE blogs.public = 1 AND blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
+                AND post_status = 'publish'
+                AND post_password = ''
+                ";
 
-        $where_search = array();
-        if(isset($this->args['search_title']) && $this->args['search_title'])
-            $where_search[] = $this->wpdb->prepare("posts.post_title LIKE %s", '%'.$this->args['search_value'].'%');
-        if(isset($this->args['search_tag']) && $this->args['search_tag'])
-            $where_search[] = $this->wpdb->prepare("c.name LIKE %s", '%'.$this->args['search_value'].'%');
-        if(isset($this->args['search_author']) && $this->args['search_author'])
-            $where_search[] = $this->wpdb->prepare("d.display_name LIKE %s", '%'.$this->args['search_value'].'%');
-                
-        $where_search = count($where_search) > 0 ? 'AND ('.implode(' OR ', $where_search).')' : '';
-        $query .= "
-            $where_search
-            ORDER BY post_date_gmt DESC
-            $limit
-            ";
-        $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit);
-        $posts = $this->wpdb->get_results($query);
+            $where_search = array();
+            if(isset($this->args['search_title']) && $this->args['search_title'])
+                $where_search[] = $wpdb->prepare("posts.post_title LIKE %s", '%'.$this->args['search_value'].'%');
+            if(isset($this->args['search_tag']) && $this->args['search_tag'])
+                $where_search[] = $wpdb->prepare("c.name LIKE %s", '%'.$this->args['search_value'].'%');
+            if(isset($this->args['search_author']) && $this->args['search_author'])
+                $where_search[] = $wpdb->prepare("d.display_name LIKE %s", '%'.$this->args['search_value'].'%');
+                    
+            $where_search = count($where_search) > 0 ? 'AND ('.implode(' OR ', $where_search).')' : '';
+            $query .= "
+                $where_search
+                ORDER BY post_date_gmt DESC
+                $limit
+                ";
+            $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit);
+            $posts = $wpdb->get_results($query);
+        }
+        else
+            $posts = 'error';
 
     	return $posts;
     }

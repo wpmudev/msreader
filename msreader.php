@@ -42,6 +42,7 @@ class WMD_MSReader {
 			//AJAX actions for dashboards
 			add_action( 'wp_ajax_dashboard_display_posts_ajax', array($this, 'dashboard_display_posts_ajax') );
 			add_action( 'wp_ajax_dashboard_display_post_ajax', array($this, 'dashboard_display_post_ajax') );
+			add_action( 'wp_ajax_dashboard_publish_post', array($this, 'dashboard_publish_post') );
 			add_action( 'wp_ajax_dashboard_display_comments_ajax', array($this, 'dashboard_display_comments_ajax') );
 			add_action( 'wp_ajax_dashboard_add_get_comment_ajax', array($this, 'dashboard_add_get_comment_ajax') );
 			add_action( 'wp_ajax_dashboard_moderate_get_comment_ajax', array($this, 'dashboard_moderate_get_comment_ajax') );
@@ -67,8 +68,10 @@ class WMD_MSReader {
 			'my_sites' => $this->plugin['dir'].'includes/modules/my-sites.php',
 			'popular_posts' => $this->plugin['dir'].'includes/modules/popular-posts.php',
 			'trending_tags' => $this->plugin['dir'].'includes/modules/trending-tags.php',
+			'pending_posts' => $this->plugin['dir'].'includes/modules/pending-posts.php',
 			'filter_blog_author' => $this->plugin['dir'].'includes/modules/filter-blog-author.php',
-			'search' => $this->plugin['dir'].'includes/modules/search.php'
+			'search' => $this->plugin['dir'].'includes/modules/search.php',
+			'user_widget' => $this->plugin['dir'].'includes/modules/user-widget.php'
 		);
 
 		$this->plugin['default_site_options'] = array(
@@ -89,14 +92,12 @@ class WMD_MSReader {
 		if(!isset($plugins[$this->plugin['basename']]))
 			$this->plugin['site_options'] = $this->plugin['default_site_options'];
 
-		//var_dump($this->plugin['site_options']);
-
 		//load whats necessary
 		include_once($this->plugin['dir'].'includes/modules.php');
 		$this->load_modules();
 
 		include_once($this->plugin['dir'].'includes/helpers.php');
-		$this->helpers = $msreader_helpers = new WMD_Start_Helpers($this->plugin);
+		$this->helpers = $msreader_helpers = new WMD_MSReader_Helpers($this->plugin);
     }
 
 	function load_modules() {
@@ -155,7 +156,7 @@ class WMD_MSReader {
 		$parameters_to_pass = 
 		array(
 			'numeric' => array(
-				'page', 'limit', 'blog_id', 'post_id', 'comments_page', 'comments_limit'
+				'page', 'limit', 'blog_id', 'post_id', 'comments_page', 'comments_limit', 'last_date'
 			), 
 			'array' => array(
 				'args', 'comments_args', 'comment_add_data', 'comment_moderate_data'
@@ -183,7 +184,7 @@ class WMD_MSReader {
 			$load_module = key($this->modules);
 		}
 
-		$this->main_query->load_module($this->modules[$load_module]);
+		$this->main_query->load_module($this->modules[$load_module], 1);
 	}
 
 
@@ -212,10 +213,10 @@ class WMD_MSReader {
 
 	function register_scripts_styles_admin($hook) {
 		if($hook == 'dashboard_page_msreader') {
-			wp_register_style('wmd-msreader-admin', $this->plugin['dir_url'].'css/admin.css', array(), 4);
+			wp_register_style('wmd-msreader-admin', $this->plugin['dir_url'].'css/admin.css', array(), 20);
 			wp_enqueue_style('wmd-msreader-admin');
 
-			wp_register_script('wmd-msreader-admin', $this->plugin['dir_url'].'js/admin.js', array('jquery'), 4);
+			wp_register_script('wmd-msreader-admin', $this->plugin['dir_url'].'js/admin.js', array('jquery'), 20);
 			wp_enqueue_script('wmd-msreader-admin');
 
 			wp_localize_script( 'wmd-msreader-admin', 'msreader_main_query', array(
@@ -223,6 +224,7 @@ class WMD_MSReader {
 				'page' => $this->main_query->page,
 				'limit' => $this->main_query->limit,
 				'args' => $this->main_query->args,
+				'last_date' => $this->main_query->last_date,
 				'comments_page' => $this->main_query->comments_page,
 				'comments_limit' => $this->main_query->comments_limit,
 				'comments_args' => $this->main_query->comments_args,
@@ -269,7 +271,7 @@ class WMD_MSReader {
 	function reader_page() {
 		//get details to display
 		$query_details = $this->main_query->get_query_details();
-		$posts = $this->main_query->get_posts();
+		$empty_message = $this->main_query->module->get_empty_message();
 
 		include($this->plugin['dir'].'views/dashboard-reader/index.php');
 	}
@@ -279,6 +281,23 @@ class WMD_MSReader {
 
 		$posts = $this->main_query->get_posts();
 
+		if(is_array($posts) && count($posts) > 0) {
+			global $post;
+
+			foreach ($posts as $post) {
+				setup_postdata($post);
+				
+				include($this->plugin['dir'].'views/dashboard-reader/content-post.php');
+			}
+		}
+		elseif($posts != 'error' && !is_array($posts)) {
+			$html = $posts;
+			include($this->plugin['dir'].'views/dashboard-reader/content-page.php');
+		}
+		else 
+			echo 0;
+
+		/*
 		if(is_array($posts)) {
 			global $post;
 
@@ -290,6 +309,7 @@ class WMD_MSReader {
 		}
 		else 
 			echo 0;
+		*/
 
 		die();
 	}
@@ -306,6 +326,9 @@ class WMD_MSReader {
 		$post = $this->main_query->get_post();
 
 		if($post) {
+			global $more;
+			$more = 1;
+
 			setup_postdata($post);
 
 			//set up everything else
@@ -326,6 +349,25 @@ class WMD_MSReader {
 
 		if(isset($restore))
 			restore_current_blog();
+
+		die();
+	}
+
+
+	function dashboard_publish_post() {
+		error_reporting(0);
+
+		if(get_current_blog_id() != $this->main_query->blog_id) {
+			$restore = 1;
+			switch_to_blog($this->main_query->blog_id);
+		}
+
+		$status = $this->main_query->publish_post();
+
+		echo ($status) ? __( 'Published', 'wmd_msreader' ) : 0;
+
+		if(isset($restore))
+			restore_current_blog();	
 
 		die();
 	}

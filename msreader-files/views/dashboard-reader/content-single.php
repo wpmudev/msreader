@@ -3,9 +3,10 @@
 	<button class="right dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Show next post', 'wmd_msreader' ); ?></span></button>
 	<div class="links">
 		<a href="<?php echo get_permalink($post->ID); ?>"><?php _e( 'View Orginal', 'wmd_msreader' ); ?></a><?php
-		if(current_user_can( 'edit_others_posts', $post->ID ) || ($post->post_author == $current_user_id))  { 
+		if(current_user_can( 'edit_others_posts', $post->ID ) || ($post->post_author == $current_user_id))
 			 edit_post_link(__( 'Edit', 'wmd_msreader' ), '', '');
-		}
+		if(current_user_can( 'publish_posts', $post->ID ) && $post->post_status != 'publish')
+			echo '<button class="publish">'.__( 'Publish', 'wmd_msreader' ).'</button>';
 		?>
 	</div>
 	<span class="spinner spinner-save"></span>
@@ -15,7 +16,7 @@
 	<div class="msreader-post-holder">
 		<h3 class="theme-name"><?php the_title(); ?><span class="theme-version msreader-blogname"><?php echo apply_filters('msreader_post_blog', $post->blog_details->blogname, $post); ?></span></h3>
 		<h4 class="theme-author">
-			<?php echo $post->relative_time; ?> 
+			<?php echo $post->post_date_relative; ?>
 			<?php _e( 'ago', 'wmd_msreader' ); ?>
 			<?php _e( 'by', 'wmd_msreader' ); ?>
 			<?php echo apply_filters('msreader_post_author', get_the_author(), $post); ?>

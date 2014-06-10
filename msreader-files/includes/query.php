@@ -4,8 +4,9 @@ class WMD_MSReader_Query {
 
 	var $cache_init = 2;
 	var $page = 1;
-	var $limit = 6;
+	var $limit = 7;
 	var $limit_sample = 100;
+	var $last_date = 0;
 	var $args = array();
 
 	var $blog_id;
@@ -25,16 +26,24 @@ class WMD_MSReader_Query {
 		$this->limit_sample = apply_filters('msreader_query_limit_sample_default', $this->limit_sample);
     }
 
-	function load_module($module) {
+	function load_module($module, $is_main_query = 0) {
 		//load module
 		$this->module = $module;
 
 		//pass parameters to module
+		$this->module->main = $is_main_query ? 1 : 0;
 		$this->module->cache_init = $this->cache_init;
 		$this->module->page = $this->page;
 		$this->module->limit = $this->limit;
 		$this->module->limit_sample = $this->limit_sample;
 		$this->module->args = $this->args;
+
+		//check if its a query used by everybody
+		$store_user_id = !$this->module->details['global_cache'] ? get_current_user_id() : '';
+		//set up secret code for query
+		$this->module->query_hashes['get_posts'] = md5($this->cache_init.$this->module->details['slug'].$this->page.$this->limit.http_build_query($this->args).$store_user_id);
+
+		$this->module->load_module();
 	}
 
 	function get_query_details() {
@@ -47,14 +56,9 @@ class WMD_MSReader_Query {
 		$posts = array();
 
 		if($this->module) {
-			//set up secret code for query
-			$query_hash = md5($this->cache_init.$this->module->details['slug'].$this->page.$this->limit.implode('',$this->args));
-
-			//check if its a query used by everybody
-			$cache_group = (isset($this->module->details['global_cache']) && $this->module->details['global_cache']) ? 'msreader_global' : 'msreader';
-			
+		
 			//lets load
-			$posts = wp_cache_get('query_'.$query_hash, $cache_group);
+			$posts = (!$this->module->details['disable_cache']) ? wp_cache_get('query_'.$this->module->query_hashes['get_posts'], 'msreader_global') : 0;
 			if(!$posts) {
 				$blog_details = array();
 
@@ -65,8 +69,13 @@ class WMD_MSReader_Query {
 					foreach ($posts as $key => $post)
 						$posts[$key] = $this->set_additional_post_data($post);
 
-				wp_cache_set('query_'.$query_hash, $posts, $cache_group, 900);
+				if(!$this->module->details['disable_cache'])
+					wp_cache_set('query_'.$this->module->query_hashes['get_posts'], $posts, 'msreader_global', $this->module->details['cache_time'] ? $this->module->details['cache_time'] : 900);
 			}
+
+			if(is_array($posts))
+				foreach ($posts as $key => $post)
+					$posts[$key] = $this->set_additional_post_data_dynamic($post);
 		}
 
 		return $posts;
@@ -81,11 +90,30 @@ class WMD_MSReader_Query {
 
 			$post = get_post($this->post_id);
 			$post = $this->set_additional_post_data($post);
+			$post = $this->set_additional_post_data_dynamic($post);
 
 			return $post;
 
 			if(isset($restore))
 				restore_current_blog();
+		}
+	}
+
+	function publish_post() {
+		if($this->blog_id && $this->post_id) {
+			if(get_current_blog_id() != $this->blog_id) {
+				$restore = 1;
+				switch_to_blog($this->blog_id);
+			}
+			
+			wp_publish_post( $this->post_id );
+
+			$status = true;
+
+			if(isset($restore))
+				restore_current_blog();
+
+			return $status;
 		}
 	}
 
@@ -216,10 +244,17 @@ class WMD_MSReader_Query {
 		//change excerpt
 		$post->post_excerpt = $this->module->get_excerpt($post);
 
-		//set relative time
-		$post->relative_time = human_time_diff( get_post_time('U', true, $post), current_time('timestamp') );
-
 		return $post;
+	}
+
+	//set additional details for post that cant be cached
+	function set_additional_post_data_dynamic($post) {
+		$post = apply_filters('msreader_set_additional_post_data_dynamic_before', $post);
+
+		$post->post_date_relative = human_time_diff( strtotime($post->post_date_gmt), time() );
+		$post->post_date_stamp = strtotime($post->post_date_gmt);
+
+		return apply_filters('msreader_set_additional_post_data_dynamic_after', $post);
 	}
 
 	//helper that applies moderation action on comments to replies

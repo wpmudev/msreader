@@ -4,7 +4,8 @@ $module = array(
 	'description' => __( 'Lets users filter posts by author or site.', 'wmd_msreader' ),
 	'slug' => 'filter_blog_author', 
 	'class' => 'WMD_MSReader_Module_FilterBlogAuthor',
-    'can_be_default' => false
+    'can_be_default' => false,
+    'global_cache' => true
 );
 
 class WMD_MSReader_Module_FilterBlogAuthor extends WMD_MSReader_Modules {
@@ -36,6 +37,7 @@ class WMD_MSReader_Module_FilterBlogAuthor extends WMD_MSReader_Modules {
     }
 
     function query() {
+        global $wpdb;
         $current_user_id = get_current_user_id();
         $limit = $this->get_limit();
         
@@ -49,12 +51,12 @@ class WMD_MSReader_Module_FilterBlogAuthor extends WMD_MSReader_Modules {
         ";
 
         if(isset($this->args['blog_id']) && is_numeric($this->args['blog_id']))
-            $query .= $this->wpdb->prepare("
+            $query .= $wpdb->prepare("
                 AND posts.BLOG_ID = %d
             ", $this->args['blog_id']);
 
         if(isset($this->args['author_id']) && is_numeric($this->args['author_id']))
-            $query .= $this->wpdb->prepare("
+            $query .= $wpdb->prepare("
                 AND post_author = %d
             ", $this->args['author_id']);
 
@@ -63,7 +65,7 @@ class WMD_MSReader_Module_FilterBlogAuthor extends WMD_MSReader_Modules {
             $limit
         ";
         $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit);
-        $posts = $this->wpdb->get_results($query);
+        $posts = $wpdb->get_results($query);
 
     	return $posts;
     }

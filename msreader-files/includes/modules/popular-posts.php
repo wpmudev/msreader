@@ -3,7 +3,8 @@ $module = array(
 	'name' => __( 'Popular Posts', 'wmd_msreader' ),
 	'description' => __( 'Displays popular posts', 'wmd_msreader' ),
 	'slug' => 'popular_posts', 
-	'class' => 'WMD_MSReader_Module_PopularPost'
+	'class' => 'WMD_MSReader_Module_PopularPost',
+    'global_cache' => true
 );
 
 class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
@@ -18,6 +19,7 @@ class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
     }
 
     function query() {
+        global $wpdb;
         $current_user_id = get_current_user_id();
         $limit = $this->get_limit();
         $limit_sample = $this->get_limit($this->limit_sample,1);
@@ -39,7 +41,7 @@ class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
             $limit
         ";
         $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $limit_sample);
-        $posts = $this->wpdb->get_results($query);
+        $posts = $wpdb->get_results($query);
 
     	return $posts;
     }

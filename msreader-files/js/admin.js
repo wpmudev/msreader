@@ -1,5 +1,14 @@
-(function($) {
-	var current_post = 0;
+var MSReader = function($) {
+	msreader_main_query.current_post = 0;
+	msreader_main_query.ajax_loading = 0;
+	msreader_main_query.end = 0;
+	msreader_main_query.page = parseInt(msreader_main_query.page)-1;
+	msreader_main_query.last_date = parseInt(msreader_main_query.last_date);
+	msreader_main_query.comments_page = parseInt(msreader_main_query.comments_page);
+	msreader_main_query.comments_end = 0;
+	msreader_main_query.comments_offset = 0;
+	msreader_main_query.comments_removed = 0;
+	msreader_main_query.comment_replay_to = 0;
 
 	$(document).ready(function() {
 		//handle sticky sidebar on scroll
@@ -9,7 +18,6 @@
 		if(sidebar_height > ($(window).height() - $('#msreader-dashboard h2').height() - $('#wpadminbar').height()))
 			sidebar.removeClass('floating');
 		$(window).on('scroll resize', function(){
-			console.log($(window).width());
 			if($(window).width() > 850 && $(window).scrollTop() >= sidebar_position_top && sidebar_height < ($(window).height() - $('#wpadminbar').height())) {
 				//if(!sidebar.hasClass('floating')) {
 					sidebar.removeClass('floating').css('top', $('#wpadminbar').height()).css('left', sidebar.position().left + parseInt($('#wpcontent').css('margin-left'))).addClass('floating');
@@ -19,40 +27,36 @@
 				sidebar.removeClass('floating');
 		});
 
-		//handle main query post loading on scroll
-		msreader_main_query.ajax_loading = 0;
-		msreader_main_query.end = 0;
-		msreader_main_query.page = parseInt(msreader_main_query.page);
-		msreader_main_query.comments_page = parseInt(msreader_main_query.comments_page);
-		msreader_main_query.comments_end = 0;
-		msreader_main_query.comments_offset = 0;
-		msreader_main_query.comments_removed = 0;
-		msreader_main_query.comment_replay_to = 0;
+		//initial load on start
+		display_posts_ajax();
 
 		//load more posts then limit on huge screens
 		var fill_the_screen_with_posts = setInterval(function () {
-			if(!msreader_main_query.end && $('#wpbody-content').height() < $(window).height() && $('.msreader-posts').find('.msreader-post').length >= msreader_main_query.limit) {
-	            if(!msreader_main_query.ajax_loading)
-					msreader_display_posts_ajax();
-			}
-			else {
-				if($('.msreader-posts').find('.msreader-post').length < msreader_main_query.limit)
-					msreader_main_query.comments_end = 1;
-				
-				clearInterval(fill_the_screen_with_posts);
+			if(msreader_main_query.page > 0) {
+				if(!msreader_main_query.end && $('#wpbody-content').height() < $(window).height() && $('.msreader-posts').find('.msreader-post').length >= msreader_main_query.limit) {
+					if(!msreader_main_query.ajax_loading)
+						display_posts_ajax();
+				}
+				else {
+					if($('.msreader-posts').find('.msreader-post').length < msreader_main_query.limit)
+						msreader_main_query.end = 1;
+					
+					clearInterval(fill_the_screen_with_posts);
+				}
+
 			}
         },500);
 
-		//load on windows scrtolling
+		//load on windows scrolling
 		$(window).scroll(function() {
 			if(!msreader_main_query.ajax_loading && !msreader_main_query.end && $(this).scrollTop() >= $(document).height() - $(this).height() - $(this).height()/3) {
-				msreader_display_posts_ajax();
+				display_posts_ajax();
 			}
 		});
 
 		//handle opening of single post
 		$('.msreader-posts').on('click', '.msreader-open-post', function(){
-			msreader_display_post_ajax($(this).parents('.msreader-post'));
+			display_post_ajax($(this).parents('.msreader-post'));
 		})
 		//handle closing of single post
 		$('.msreader-post-overlay').on('click', '.msreader-post-header-navigation .close', function(){
@@ -61,18 +65,18 @@
 		})
 		//handle opening of next post
 		$('.msreader-post-overlay').on('click', '.msreader-post-header-navigation .right', function(){
-			msreader_display_post_ajax(current_post.next());
+			display_post_ajax(msreader_main_query.current_post.next());
 		})
 		//handle opening of previous post
 		$('.msreader-post-overlay').on('click', '.msreader-post-header-navigation .left', function(){
-			msreader_display_post_ajax(current_post.prev());
+			display_post_ajax(msreader_main_query.current_post.prev());
 		})
 
 		//handle loading previous comments for post
 		$('.msreader-post-overlay').on('click', '.load-previous-comments', function(){
 			var button = $(this);
-			var blog_id = current_post.attr("data-blog_id");
-			var post_id = current_post.attr("data-post_id");
+			var blog_id = msreader_main_query.current_post.attr("data-blog_id");
+			var post_id = msreader_main_query.current_post.attr("data-post_id");
 
 			if(blog_id && post_id) {
 				button.parent().find('.spinner').show();
@@ -90,7 +94,6 @@
 
 				$.post(ajaxurl, args, function(response) {
 					button.parent().find('.spinner').hide();
-					console.log(response);
 					if(response && response != 0) {
 						response = $($.parseHTML(response));
 
@@ -100,20 +103,34 @@
 
 						//check if this is last comment
 						if(msreader_main_query.comments_limit > count)
-							msreader_load_previous_comments_button_action('disable');
+							load_previous_comments_button_action('disable');
 
 						msreader_main_query.comments_page = msreader_main_query.comments_page + 1;
 					}
 					else
-						msreader_load_previous_comments_button_action('disable');
+						load_previous_comments_button_action('disable');
 				});
 			}
+		})
+
+		//handle publishing of post
+		$('.msreader-post-overlay').on('click', '.msreader-post-header-navigation .links .publish', function(){
+			var blog_id = msreader_main_query.current_post.attr("data-blog_id");
+			var post_id = msreader_main_query.current_post.attr("data-post_id");
+
+			publish_post(blog_id, post_id);
+		})
+		$('.msreader-posts').on('click', '.msreader-post-actions .publish', function(){
+			var blog_id = $(this).parents('.msreader-post').attr("data-blog_id");
+			var post_id = $(this).parents('.msreader-post').attr("data-post_id");
+
+			publish_post(blog_id, post_id);
 		})
 
 		
 		//set replay data
 		$('.msreader-post-overlay').on('click', '.comments .comment-replay', function(){
-			var window_width = msreader_get_window_width();
+			var window_width = get_window_width();
 			var comment = $(this).parents('.comment-body');
 			var form = $(this).parents('.msreader-post').find('.msreader-add-comment');
 			var reply_info = form.find('.reply-info');
@@ -149,7 +166,7 @@
 		$('.msreader-post-overlay').on('click', '.msreader-add-comment .reply-cancel', function(event){
 			event.preventDefault;
 
-			var window_width = msreader_get_window_width();
+			var window_width = get_window_width();
 
 			msreader_main_query.comment_replay_to = 0;
 			$(this).parents('.msreader-post-overlay').find('.comments .comment-replay').removeClass('button-primary');
@@ -165,11 +182,11 @@
 
 		//add comment to post
 		$('.msreader-post-overlay').on('click', '.msreader-add-comment #submit', function(){
-			var window_width = msreader_get_window_width();
+			var window_width = get_window_width();
 
 			var form = $(this).parents('.msreader-add-comment');
-			var blog_id = current_post.attr("data-blog_id");
-			var post_id = current_post.attr("data-post_id");
+			var blog_id = msreader_main_query.current_post.attr("data-blog_id");
+			var post_id = msreader_main_query.current_post.attr("data-post_id");
 			var article;
 			var level;
 			var comment_offset;
@@ -279,8 +296,8 @@
 			var button = $(this);
 			var comment = button.parents('.comment-body');
 			var comment_holder = comment.parent();
-			var blog_id = current_post.attr("data-blog_id");
-			var post_id = current_post.attr("data-post_id");
+			var blog_id = msreader_main_query.current_post.attr("data-blog_id");
+			var post_id = msreader_main_query.current_post.attr("data-post_id");
 			var comment_id = comment.attr("data-comment_id");
 			var action = button.attr("data-action");
 			var comment_offset = $(".msreader-comments").scrollTop() + comment.position().top + comment.height() - ($(".msreader-comments").height()/2);
@@ -361,7 +378,7 @@
 
 	});
 
-	function msreader_display_post_ajax(post) {
+	this.display_post_ajax = function(post) {
 		var blog_id = post.attr("data-blog_id");
 		var post_id = post.attr("data-post_id");
 
@@ -392,7 +409,7 @@
 
 				if(response && response != 0) {
 					response = $($.parseHTML(response));
-					current_post = post;
+					msreader_main_query.current_post = post;
 
 					//add post body to overlay
 					var msreader_post_overlay = $('.msreader-post-overlay');
@@ -405,14 +422,14 @@
 					//check if this is last comment
 					var count = msreader_post_overlay.find('.msreader-comments .comments > li').length;
 					if(msreader_main_query.comments_limit > count)
-						msreader_load_previous_comments_button_action('disable');
+						load_previous_comments_button_action('disable');
 
 					//disable next/previous if does not exists
-					if(!current_post.next().length)
+					if(!msreader_main_query.current_post.next('.msreader-post').hasClass('msreader-post'))
 						msreader_post_overlay.find("button.right").prop('disabled', true);
 					else
 						msreader_post_overlay.find("button.right").prop('disabled', false);
-					if(!current_post.prev().length)
+					if(!msreader_main_query.current_post.prev('.msreader-post').length)
 						msreader_post_overlay.find("button.left").prop('disabled', true);
 					else
 						msreader_post_overlay.find("button.left").prop('disabled', false);
@@ -422,7 +439,7 @@
 	}
 
 	//control the status of button responsible for loading older comments
-	function msreader_load_previous_comments_button_action(action) {
+	this.load_previous_comments_button_action = function(action) {
 		var button = $('.msreader-post-overlay .load-previous-comments');
 		if(action == 'disable') {
 			msreader_main_query.comments_end = 1;
@@ -431,7 +448,7 @@
 		}
 	}
 
-	function msreader_display_posts_ajax() {
+	this.display_posts_ajax = function() {
 		msreader_main_query.ajax_loading = 1;
 
 		$('.msreader-post-loader').show();
@@ -446,10 +463,13 @@
 		$.post(ajaxurl, args, function(response) {
 			$('.msreader-post-loader').hide();
 			if(response && response != 0) {
+				console.log(response);
 				response = $($.parseHTML(response));
 				count = response.length;
 				if(count > 0)
 					$('.msreader-post-loader').before(response);
+
+
 
 				if(msreader_main_query.limit > count)
 					msreader_main_query.end = 1;
@@ -457,12 +477,63 @@
 				msreader_main_query.page = msreader_main_query.page + 1;
 				msreader_main_query.ajax_loading = 0;
 			}
-			else
+			else {
 				msreader_main_query.end = 1;
+				if($('.msreader-posts .msreader-post:visible').length == 0)
+					$('#msreader-404').show();
+			}
 		});		
 	}
 
-	function msreader_get_window_width() {
+	this.remove_post_from_list = function(blog_id, post_id, fade) {
+		if(typeof(fade)==='undefined') fade = 1;
+
+		var post = $( ".msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"']" );
+		if(fade)
+			post.fadeTo(400, 0.5);
+		else
+			post.hide();
+
+		if(fade && $('.msreader-posts .msreader-post:visible').length == 0)
+			$('#msreader-404').show();
+	}
+
+	this.add_post_to_list = function(blog_id, post_id, fade) {
+		if(typeof(fade)==='undefined') fade = 1;
+
+		var post = $( ".msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"']" );
+		if(fade)
+			post.fadeTo(400, 1);
+		else
+			post.show();
+
+		if(fade && $('.msreader-posts .msreader-post:visible').length != 0)
+			$('#msreader-404').hide();
+	}
+
+	this.publish_post = function(blog_id, post_id) {
+		if(blog_id && post_id) {
+			$(".msreader-post-header-navigation .spinner, .msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"'] .msreader-post-actions .spinner").show();
+
+			args = {
+				action: 'dashboard_publish_post',
+				blog_id: blog_id,
+				post_id: post_id
+			};
+
+			$.post(ajaxurl, args, function(response) {
+				$(".msreader-post-header-navigation .spinner, .msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"'] .msreader-post-actions .spinner").hide();
+
+				if(response && response != 0) {
+					$( ".msreader-post-overlay .msreader-post-header-navigation .links .publish, .msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"'] .msreader-post-actions .publish" ).text(response).prop( "disabled", true );
+
+					remove_post_from_list(blog_id, post_id);
+				}
+			});
+		}
+	}
+
+	this.get_window_width = function() {
 		var window_width = $(window).width();
 		var width = window.orientation == 0 ? window.screen.width : window.screen.height;
 		if (navigator.userAgent.indexOf('Android') >= 0 && window.devicePixelRatio)
@@ -472,4 +543,7 @@
 
 		return width;
 	}
-})(jQuery);
+
+	return this;
+};
+var msreader = MSReader(jQuery);

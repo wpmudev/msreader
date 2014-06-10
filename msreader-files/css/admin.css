@@ -33,6 +33,9 @@
 .msreader-widget {
 	margin-bottom: 20px;
 }
+.postbox h3, #poststuff h3 {
+	cursor: default;
+}
 .msreader-widget ul {
 	margin: 0;
 }
@@ -43,6 +46,12 @@
 	color: #00a065;
 	font-weight: bold;
 }
+.msreader-widget-links-icon {
+	font: 400 13px/1 dashicons; 
+	float:right;
+	line-height: 18px;
+}
+
 /*POST LIST*/
 .msreader-post-loader {
 	text-align: center;
@@ -51,12 +60,27 @@
 #msreader-dashboard h2 span {
 	color: #00a065;
 }
+.msreader-post {
+	background: none;
+}
 .msreader-post-meta {
 	border-top: 1px solid #eee;
+	background: #fff;
 }
 #msreader-dashboard h2 {
 	margin: 0px 0 12px 0;
 	padding: 0;
+}
+.msreader-post-indicator {
+	float: right;
+	color: #00a065;
+	cursor:help;
+}
+.msreader_featured_media {
+	margin-bottom: 8px;
+}
+.msreader-post-content {
+	background: #fff;
 }
 .msreader-post-content img {
 	max-width: 100%;
@@ -66,12 +90,16 @@
 #msreader-dashboard iframe, .msreader-post-overlay iframe {
 	max-width: 100%;
 }
+.msreader-post-actions {
+	background:#fff;
+}
 .msreader-post-meta  .inside {
 	line-height: 48px;
 }
 #msreader-dashboard .inside {
 	overflow: hidden;
-	margin: 12px 0 0 0;
+	margin: 0;
+	padding: 12px;
 }
 .msreader-post-meta .avatar {
 	float:left;
@@ -81,8 +109,8 @@
 	float: right;
 	margin: 14px 10px;
 }
-.msreader-post-meta .button {
-	margin: 10px 0;
+.msreader-post-actions .button {
+	margin: 0 0 0 5px;
 }
 #msreader-404 .inside {
 	text-align: center;
@@ -94,7 +122,9 @@
 .msreader-post-header-navigation .links {
 	float: left;
 }
-.msreader-post-header-navigation .links a {
+.msreader-post-header-navigation .links a, .msreader-post-header-navigation .links button {
+	background: none;
+	border: none;
 	text-decoration: none;
 	line-height: 49px;
 	font-size: 16px;
@@ -106,10 +136,12 @@
 	display: inline-block;
 	color: #777;
 	margin: 0px;
+	outline: none;
 }
-.msreader-post-header-navigation .links a:hover {
+.msreader-post-header-navigation .links a:hover, .msreader-post-header-navigation .links button:hover  {
 	background: #0074a2;
 	color: #fff;
+	cursor: pointer;
 }
 .msreader-post-overlay .msreader-post-header-navigation .spinner {
 	float: left;

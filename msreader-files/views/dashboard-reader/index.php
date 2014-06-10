@@ -2,6 +2,18 @@
 
 	<?php screen_icon(); ?>
 	<h2><?php echo $query_details['page_title']; ?></h2>
+
+	<?php 
+	if($this->main_query->module->message) {
+		$notification_class = $this->main_query->module->message_type ? 'updated' : 'error';
+		?>
+		
+		<div id="setting-error-settings_updated" class="<?php echo $notification_class; ?> settings-error"> 
+		<p><strong><?php echo $this->main_query->module->message; ?></strong></p></div>
+		
+		<?php 
+	} 
+	?>
 	
 	<div id="poststuff">
 		<div id="post-body" class="metabox-holder columns-2">
@@ -11,23 +23,7 @@
 			</div>
 
 			<div id="postbox-container-2" class="msreader-posts postbox-container">
-				<?php
-				if(is_array($posts) && count($posts) > 0) {
-					global $post;
-
-					foreach ($posts as $post) {
-						setup_postdata($post);
-						
-						include('content-post.php');
-					}
-				}
-				elseif($posts == 'error' || (is_array($posts) && count($posts) < 1))
-					include('404.php');
-				else {
-					$html = $posts;
-					include('content-page.php');
-				}
-				?>
+				<?php include('404.php'); ?>
 				<div class="msreader-post-loader">
 					<img alt="<?php _e( 'Loading...', 'wmd_msreader' ); ?>" src="<?php echo includes_url('images/spinner-2x.gif'); ?>"/>
 				</div>

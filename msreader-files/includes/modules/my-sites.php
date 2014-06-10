@@ -18,6 +18,8 @@ class WMD_MSReader_Module_MySites extends WMD_MSReader_Modules {
     }
 
     function query() {
+        global $wpdb;
+        
         $current_user_id = get_current_user_id();
         $limit = $this->get_limit();
 
@@ -40,7 +42,7 @@ class WMD_MSReader_Module_MySites extends WMD_MSReader_Modules {
             $limit
         ";
         $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $user_sites_ids);
-        $posts = $this->wpdb->get_results($query);
+        $posts = $wpdb->get_results($query);
 
     	return $posts;
     }

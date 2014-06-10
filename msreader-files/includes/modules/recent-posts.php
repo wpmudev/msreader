@@ -3,7 +3,8 @@ $module = array(
 	'name' => __( 'Recent Posts', 'wmd_msreader' ),
 	'description' => __( 'Displays my posts', 'wmd_msreader' ),
 	'slug' => 'recent_posts', 
-	'class' => 'WMD_MSReader_Module_RecentPost'
+	'class' => 'WMD_MSReader_Module_RecentPost',
+    'global_cache' => true
 );
 
 class WMD_MSReader_Module_RecentPost extends WMD_MSReader_Modules {
@@ -18,6 +19,7 @@ class WMD_MSReader_Module_RecentPost extends WMD_MSReader_Modules {
     }
 
     function query() {
+        global $wpdb;
         $current_user_id = get_current_user_id();
         $limit = $this->get_limit();
         
@@ -32,7 +34,7 @@ class WMD_MSReader_Module_RecentPost extends WMD_MSReader_Modules {
             $limit
         ";
         $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit);
-        $posts = $this->wpdb->get_results($query);
+        $posts = $wpdb->get_results($query);
 
     	return $posts;
     }

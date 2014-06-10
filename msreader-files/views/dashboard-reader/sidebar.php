@@ -19,7 +19,6 @@ foreach ($sidebar_widgets as $slug => $details) {
 	?>
 		<div id="msreader-widget-<?php echo $slug; ?>" class="msreader-widget postbox">
 			<?php echo isset($details['title']) ? '<h3>'.$details['title'].'</h3>' : ''; ?>
-			<div class="inside">
 	<?php 
 	}
 	else {
@@ -33,7 +32,7 @@ foreach ($sidebar_widgets as $slug => $details) {
 		foreach ($details['data'] as $type => $content) {
 			//echo as links if links
 			if($type == 'list' && isset($content) && count($content) > 0) {
-				echo '<ul class="list">';
+				echo '<div class="inside"><ul class="list">';
 				foreach ($content as $priority => $value) {
 					if(!isset($value['title']))
 						continue;
@@ -48,7 +47,7 @@ foreach ($sidebar_widgets as $slug => $details) {
 					else
 						echo '<li>'.(isset($value['before']) ? $value['before'] : '').$value['title'].(isset($value['after']) ? $value['after'] : '').'</li>';
 				}
-				echo '</ul>';
+				echo '</ul></div>';
 			}
 			//echo as html by default
 			else
@@ -60,7 +59,6 @@ foreach ($sidebar_widgets as $slug => $details) {
 	
 	//close default styling
 	if($default_style) { ?>
-			</div>
 		</div>	
 	<?php
 	}

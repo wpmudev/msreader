@@ -5,6 +5,7 @@ $module = array(
 	'slug' => 'trending_tags', 
 	'class' => 'WMD_MSReader_Module_TrendingTags',
     'can_be_default' => false,
+    'global_cache' => true,
     'default_options' => array(
         'widget_links_limit' => 5
     )
@@ -19,6 +20,8 @@ class WMD_MSReader_Module_TrendingTags extends WMD_MSReader_Modules {
     }
 
     function add_widget($widgets) {
+        global $wpdb;
+
         $limit_sample_total = 100;
     	$limit_sample = $this->get_limit($limit_sample_total, 1);
     	$limit_links = $this->options['widget_links_limit']; 
@@ -44,9 +47,9 @@ class WMD_MSReader_Module_TrendingTags extends WMD_MSReader_Modules {
 	            $limit
 	        ";
             $query = apply_filters('msreader_'.$this->details['slug'].'_widget', $query, $this->args, $limit, $limit_sample);
-	        $top_tags = $this->wpdb->get_results($query, ARRAY_A);
+	        $top_tags = $wpdb->get_results($query, ARRAY_A);
 
-	        wp_cache_set('query_'.$query_hash, $top_tags, $cache_group, 3600);
+	        wp_cache_set('widget_'.$query_hash, $top_tags, $cache_group, 3600);
     	}
 
         //prepare trending tags links
@@ -60,25 +63,29 @@ class WMD_MSReader_Module_TrendingTags extends WMD_MSReader_Modules {
     }
 
     function get_page_title() {
+        global $wpdb;
+
     	$tax_id = $this->args[0];
 
-    	$query = $this->wpdb->prepare("
+    	$query = $wpdb->prepare("
 			SELECT name
 			FROM $this->db_network_terms
 			WHERE term_id = %d
 			LIMIT 1
         ", $tax_id);
         $query = apply_filters('msreader_'.$this->details['slug'].'_page_title', $query, $this->args, $tax_id);
-        $tag = $this->wpdb->get_row($query, ARRAY_A);
+        $tag = $wpdb->get_row($query, ARRAY_A);
 
 		return $this->details['page_title'].': <span>'.$tag['name'].'</span>';
     }
 
     function query() {
+        global $wpdb;
+
         $limit = $this->get_limit();
         $tax_id = $this->args[0];
         
-    	$query = $this->wpdb->prepare("
+    	$query = $wpdb->prepare("
             SELECT posts.BLOG_ID AS BLOG_ID, ID, post_author, post_date, post_date_gmt, post_content, post_title
             FROM $this->db_network_posts AS posts
             INNER JOIN $this->db_blogs AS blogs ON blogs.blog_id = posts.BLOG_ID
@@ -91,7 +98,7 @@ class WMD_MSReader_Module_TrendingTags extends WMD_MSReader_Modules {
             $limit
         ", $tax_id);
         $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $tax_id);
-        $posts = $this->wpdb->get_results($query);
+        $posts = $wpdb->get_results($query);
 
     	return $posts;
     }

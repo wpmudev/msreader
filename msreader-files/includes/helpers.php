@@ -1,11 +1,38 @@
 <?php
-class WMD_Start_Helpers {
+class WMD_MSReader_Helpers {
 
 	var $plugin;
 
 	function __construct($plugin) {
         $this->plugin = $plugin;
     }
+
+	function get_user_roles_per_blog($user_id) {
+		global $wpdb;
+		$msreader_edublogs_db_user_meta = $wpdb->base_prefix.'usermeta';
+
+		$query = $wpdb->prepare("
+		    SELECT meta_key, meta_value
+		    FROM $msreader_edublogs_db_user_meta
+		    WHERE user_id = %d
+		    AND meta_key LIKE %s
+		", $user_id, 'wp%_capabilities');
+		$user_roles_prepare = $wpdb->get_results($query, ARRAY_A);
+
+		$user_roles = array();
+
+		foreach ($user_roles_prepare as $user_role_prepare) {
+		    $blog_id = explode('_', $user_role_prepare['meta_key']);
+		    $blog_id = count($blog_id) > 2 ? $blog_id[1] : 1;
+
+		    $meta_value = maybe_unserialize($user_role_prepare['meta_value']);
+		    foreach ($meta_value as $role => $status)
+		        if($status == true)
+		            $user_roles[$blog_id][] = $role;
+		};
+
+		return $user_roles;
+	}
     
 	function the_select_options($array, $current) {
 		if(empty($array))

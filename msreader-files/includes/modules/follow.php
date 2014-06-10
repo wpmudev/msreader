@@ -15,22 +15,24 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
 
 	function init() {
         add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_link_to_widget'), 10 );
-		add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_widget'), 10, 10 );
 
-        add_action( 'admin_bar_menu', array( $this, "follow_link" ), 5 );
-        add_action( 'wp_head', array( $this, "add_css" ) );
-        add_action( 'admin_head', array( $this, "add_css" ) );
+        add_action( 'admin_bar_menu', array( $this, "follow_link" ), 500 );
+        add_action( 'wp_head', array( $this, "add_css_js" ) );
+        add_action( 'admin_head', array( $this, "add_css_js" ) );
 
-        add_action('admin_init', array($this,'admin_init') );
+        add_action( 'admin_init', array($this,'admin_init') );
 
         add_filter( 'msreader_module_options_'.$this->details['slug'], array($this,'add_options_html'), 10, 2 );
 
-        add_filter('msreader_post_blog', array($this,'add_blog_link'),20,2);
+        add_filter( 'msreader_post_blog', array($this,'add_blog_link'),20,2);
+
+        add_filter( 'msreader_user_widget_user_info', array($this,'add_following_stats'),20,1);
     }
 
     function add_link_to_widget($widgets) {
+        //$widgets['reader']['data']['list'][] = $this->create_link_for_main_widget('<a href="'.$this->get_module_dashboard_url(array('action' => 'manage')).'" title="'.__('Manage followed sites', 'wmd_msreader').'"><span class="msreader-widget-links-icon dashicons-admin-generic"></span></a>');
         $widgets['reader']['data']['list'][] = $this->create_link_for_main_widget();
-
+        
         return $widgets;
     }
 
@@ -42,8 +44,17 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
             return $name;
     }
 
-    function add_css() {
-        //echo '<style type="text/css">#wp-admin-bar-msreader-follow .ab-item:before {content: "\f487";}</style>';
+    function add_following_stats($user_info) {
+        $followed_by_user = $this->get_followed_sites();
+
+        $user_info['stats']['following'] = 
+        '<a title="View list of followed sites" href="'.$this->get_module_dashboard_url(array('action' => 'manage')).'"><h4>'.__( 'Following', 'wmd_msreader' ).'</h4>
+        <p>'.count($followed_by_user).'</p></a>';
+
+        return $user_info;
+    }
+
+    function add_css_js() {
         echo 
         '<style type="text/css">
         #wp-admin-bar-msreader-follow.follow .ab-item:before {content: "\f487";}
@@ -52,8 +63,7 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
         #wp-admin-bar-msreader-follow.following:hover .ab-item {color: #999 !important;}';
         if(is_admin())
             echo 
-            '.msreader-widget-links-icon:before {font: 400 13px/1 dashicons; content: "\f158"; float:right;}
-            .msreader-follow-icon:before {content: "\f487"; font-family: dashicons; font-size:10px; position:relative; top: 1px;}';
+            '.msreader-follow-icon:before {content: "\f487"; font-family: dashicons; font-size:10px; position:relative; top: 1px;}';
         echo 
         '</style>';
 
@@ -118,59 +128,39 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
     }
 
     function follow_link() {
-        global $wp_admin_bar;
+        if(!is_admin()) {
+            global $wp_admin_bar;
 
-        $current_blog_id = get_current_blog_id();
+            $current_blog_id = get_current_blog_id();
 
-        $followed_by_user = $this->get_followed_sites();
-        
-        if(in_array($current_blog_id, $followed_by_user)) {
-            $text = __( 'Following', 'wmd_msreader' );
-            $hover_text = __( 'Unfollow', 'wmd_msreader' );
-            $url = $this->get_module_dashboard_url(array('action' => 'unfollow', 'blog_id' => $current_blog_id));
-            $class = 'following';
+            $followed_by_user = $this->get_followed_sites();
+            
+            if(in_array($current_blog_id, $followed_by_user)) {
+                $text = __( 'Following', 'wmd_msreader' );
+                $hover_text = __( 'Unfollow', 'wmd_msreader' );
+                $url = $this->get_module_dashboard_url(array('action' => 'unfollow', 'blog_id' => $current_blog_id));
+                $class = 'following';
+            }
+            else {
+                $text = __( 'Follow', 'wmd_msreader' );
+                $hover_text = __( 'Follow', 'wmd_msreader' );
+                $url = $this->get_module_dashboard_url(array('action' => 'follow', 'blog_id' => $current_blog_id));
+                $class = 'follow';            
+            }
+
+            $wp_admin_bar->add_menu( 
+                array(
+                    'id'   => 'msreader-follow',
+                    //'parent' => 'top-secondary',
+                    'title' => '<span class="ab-icon"></span><span class="current-text">'.$text.'</span><span class="hover-text" style="display:none">'.$hover_text.'</span>',
+                    'href' => $url,
+                    'meta' => array(
+                        'class' => $class,
+                        'title' => $hover_text.' '.__( 'this site', 'wmd_msreader' )
+                    ),
+                ) 
+            );
         }
-        else {
-            $text = __( 'Follow', 'wmd_msreader' );
-            $hover_text = __( 'Follow', 'wmd_msreader' );
-            $url = $this->get_module_dashboard_url(array('action' => 'follow', 'blog_id' => $current_blog_id));
-            $class = 'follow';            
-        }
-
-        $wp_admin_bar->add_menu( 
-            array(
-                'id'   => 'msreader-follow',
-                'parent' => 'top-secondary',
-                'title' => '<span class="ab-icon"></span><span class="current-text">'.$text.'</span><span class="hover-text" style="display:none">'.$hover_text.'</span>',
-                'href' => $url,
-                'meta' => array(
-                    'class' => $class,
-                    'title' => $hover_text.' '.__( 'this site', 'wmd_msreader' )
-                ),
-            ) 
-        );
-    }
-
-    function add_widget($widgets) {
-        $current_user_id = get_current_user_id();
-        $limit = 7;
-
-        //TODO is filter module enabled
-
-        $followed_by_user = $this->get_followed_sites();
-
-        //prepare trending tags links
-        $followed_by_user_ready = array();
-        foreach ($followed_by_user as $blog_id) {
-            $blog_details = get_blog_details($blog_id);
-        	$followed_by_user_ready[] = array('link' => $this->get_module_dashboard_url(array('blog_id' => $blog_details->blog_id), 'filter_blog_author'),'title' => $blog_details->blogname, 'after' => ' <a href="'.$this->get_module_dashboard_url(array('action' => 'unfollow', 'blog_id' => $blog_details->blog_id)).'" title="'.sprintf(__('Unfollow %s', 'wmd_msreader'), $blog_details->blogname).'"><span class="msreader-widget-links-icon"></span></a>');
-        }
-
-        $scripts = 'script';
-
-    	$widgets['follow'] = $this->create_list_widget($followed_by_user_ready, array('title' => __( 'Followed Sites', 'wmd_msreader' ), 'data' => array('html' => '')));
-
-    	return $widgets;
     }
 
     function get_page_title() {
@@ -178,26 +168,55 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
     }
 
     function query() {
-        $limit = $this->get_limit();
-
-        $followed_by_user = $this->get_followed_sites();
-
-         $followed_by_user_ids = implode(',', $followed_by_user);
-
-        $query = "
-            SELECT posts.BLOG_ID AS BLOG_ID, ID, post_author, post_date, post_date_gmt, post_content, post_title
-            FROM $this->db_network_posts AS posts
-            INNER JOIN $this->db_blogs AS blogs ON blogs.blog_id = posts.BLOG_ID
-            WHERE blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
-            AND post_status = 'publish'
-            AND post_password = ''
-            AND posts.BLOG_ID IN( $followed_by_user_ids)
-            ORDER BY post_date_gmt DESC
-            $limit
-        ";
-        $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit,  $followed_by_user_ids);
+        global $wpdb;
         
-        $posts = $this->wpdb->get_results($query);
+        if(isset($this->args['action']) && ($this->args['action'] == 'manage' || $this->args['action'] == 'unfollow')) {
+            $followed_by_user = $this->get_followed_sites();
+
+            //prepare trending tags links
+            $followed_by_user_ready = array();
+            foreach ($followed_by_user as $blog_id) {
+                $blog_details = get_blog_details($blog_id);
+                $followed_by_user_ready[] = array('link' => $this->get_module_dashboard_url(array('blog_id' => $blog_details->blog_id), 'filter_blog_author'),'title' => $blog_details->blogname, 'after' => ' <small>(<a href="'.$blog_details->siteurl.'" title="Visit this site">'.$blog_details->siteurl.'</a>)</small> <a href="'.$this->get_module_dashboard_url(array('action' => 'unfollow', 'blog_id' => $blog_details->blog_id)).'" title="'.sprintf(__('Unfollow %s', 'wmd_msreader'), $blog_details->blogname).'"><span class="msreader-widget-links-icon dashicons-no"></span></a>');
+            }
+
+            $details = $this->create_list_widget($followed_by_user_ready, array('title' => __( 'Manage followed sites', 'wmd_msreader' )));
+
+            $posts = 
+            '<div class="postbox msreader-widget">
+                <h3>'.$details['title'].'</h3>
+                <div class="inside">
+                    <ul class="list">';
+                    foreach ($details['data']['list'] as $priority => $value) {
+                        $posts .= '<li>'.(isset($value['before']) ? $value['before'] : '').'<a href="'.$value['link'].'" title="View posts from this site">'.$value['title'].'</a>'.(isset($value['after']) ? $value['after'] : '').'</li>';
+                    }
+                    $posts .= 
+                    '</ul>
+                </div>
+            </div>';
+        }
+        else {
+            $limit = $this->get_limit();
+
+            $followed_by_user = $this->get_followed_sites();
+
+            $followed_by_user_ids = implode(',', $followed_by_user);
+
+            $query = "
+                SELECT posts.BLOG_ID AS BLOG_ID, ID, post_author, post_date, post_date_gmt, post_content, post_title
+                FROM $this->db_network_posts AS posts
+                INNER JOIN $this->db_blogs AS blogs ON blogs.blog_id = posts.BLOG_ID
+                WHERE blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
+                AND post_status = 'publish'
+                AND post_password = ''
+                AND posts.BLOG_ID IN( $followed_by_user_ids)
+                ORDER BY post_date_gmt DESC
+                $limit
+            ";
+            $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit,  $followed_by_user_ids);
+            
+            $posts = $wpdb->get_results($query);
+        }
 
         return $posts;
     }
