@@ -1,14 +1,29 @@
 <?php
 $module = array(
 	'name' => __( 'My Posts', 'wmd_msreader' ),
-	'description' => __( 'Displays my posts', 'wmd_msreader' ),
+	'description' => __( 'Displays current users posts', 'wmd_msreader' ),
 	'slug' => 'my_posts', 
 	'class' => 'WMD_MSReader_Module_MyPosts'
 );
 
 class WMD_MSReader_Module_MyPosts extends WMD_MSReader_Modules {
 	function init() {
-		//add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_link_to_widget'), 40 );
+        if(!$this->helpers->is_module_enabled('user_widget')) 
+            add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_link_to_widget'), 40 );
+        else
+            add_filter( 'msreader_user_widget_user_info', array($this,'add_my_posts_link_user_widget'),20,1);
+    }
+
+    function add_my_posts_link_user_widget($user_info) {
+        $link = $this->get_module_dashboard_url('my_posts');
+        $active = ($this->helpers->is_page_link_active($link)) ? ' active' : '';
+
+        $current_user_id = get_current_user_id();
+        $user_info['main'] = array_slice($user_info['main'], 0, 1, true) +
+        array("my_posts" => '<div class="user-posts'.$active.'"><small><a title="View your posts" href="'.$link.'">'.__( 'My Posts', 'wmd_msreader' ).'</a></small></div>') +
+        array_slice($user_info['main'], 1, count($user_info['main'])-1, true);
+
+        return $user_info;
     }
 
     function add_link_to_widget($widgets) {

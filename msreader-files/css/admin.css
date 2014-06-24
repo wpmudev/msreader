@@ -1,3 +1,6 @@
+.hide {
+	display: none !important;
+}
 .vertical-middle {
 	vertical-align: middle;
 	display: inline-block;
@@ -42,7 +45,7 @@
 .msreader-widget li a {
 	text-decoration: none;
 }
-.msreader-widget li.active a {
+.msreader-widget .active a {
 	color: #00a065;
 	font-weight: bold;
 }
@@ -105,18 +108,29 @@
 	float:left;
 	margin: 0 12px 0 0;
 }
-.msreader-post-meta .spinner {
-	float: right;
-	margin: 14px 10px;
+.postbox .post-spinner {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	background-position: center center;
+	background-color: #fff;
+	opacity: 0.9;
+	z-index: 1;
 }
 .msreader-post-actions .button {
 	margin: 0 0 0 5px;
+	text-transform: capitalize;
+	outline: none;
 }
 #msreader-404 .inside {
 	text-align: center;
 	font-size: 20px;
-	line-height: 45px;
+	line-height: 35px;
 	color: #777777;
+}
+#msreader-404 .inside a {
+	text-decoration: none;
 }
 /*SINGLE POST*/
 .msreader-post-header-navigation .links {
@@ -137,6 +151,7 @@
 	color: #777;
 	margin: 0px;
 	outline: none;
+	text-transform: capitalize;
 }
 .msreader-post-header-navigation .links a:hover, .msreader-post-header-navigation .links button:hover  {
 	background: #0074a2;
@@ -144,7 +159,7 @@
 	cursor: pointer;
 }
 .msreader-post-overlay .msreader-post-header-navigation .spinner {
-	float: left;
+	float: right;
 	margin: 15px 10px;
 }
 .msreader-post-overlay .msreader-post-header-navigation button[disabled],
@@ -200,6 +215,7 @@
 .msreader-post-overlay .msreader-add-comment .comment-form-comment #comment {
 	margin: 0 0 10px 0;
 	width: 100%;
+	height: 140px;
 }
 
 @media all and (min-width: 783px) {

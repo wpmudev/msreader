@@ -1,7 +1,7 @@
 <?php
 $module = array(
 	'name' => __( 'Search', 'wmd_msreader' ),
-	'description' => __( 'Allows for searching posts', 'wmd_msreader' ),
+	'description' => __( 'Allows to search posts by title, author or tags', 'wmd_msreader' ),
 	'slug' => 'search', 
 	'class' => 'WMD_MSReader_Module_Search',
     'can_be_default' => false,
@@ -13,6 +13,9 @@ class WMD_MSReader_Module_Search extends WMD_MSReader_Modules {
 	function init() {
 		add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_widget'), 10 );
         add_action( 'admin_print_styles', array($this,'add_css'));
+
+        add_filter('msreader_rss_feeds_extra_enable_feed', array($this,'add_module_slug_to_array'),10,1);
+        add_filter('msreader_rss_feeds_enable_args', array($this,'add_module_slug_to_array'),10,1);
     }
 
     function add_css() {

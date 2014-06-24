@@ -1,7 +1,7 @@
 <?php
 $module = array(
-	'name' => __( 'User Widget', 'wmd_msreader' ),
-	'description' => __( 'Displays widget with info about current user', 'wmd_msreader' ),
+	'name' => __( 'User Info', 'wmd_msreader' ),
+	'description' => __( 'Displays additional information about current user in main widget', 'wmd_msreader' ),
 	'slug' => 'user_widget', 
 	'class' => 'WMD_MSReader_Module_UserWidget',
     'can_be_default' => false
@@ -15,7 +15,7 @@ class WMD_MSReader_Module_UserWidget extends WMD_MSReader_Modules {
         add_action('save_post', array($this,'flush_user_post_count'));
         add_action('delete_post', array($this,'flush_user_post_count'));
 
-        add_action( 'admin_head', array( $this, "add_css" ) );
+        add_action('admin_head', array( $this, "add_css" ));
     }
 
     function add_css() {
@@ -28,7 +28,7 @@ class WMD_MSReader_Module_UserWidget extends WMD_MSReader_Modules {
                 #msreader-widget-reader .user-avatar {float: left; margin:0 12px 7px 0; width:48px; height:48px; position:relative; }
                 #msreader-widget-reader .change-avatar-text {transition: opacity 0.5s ease; opacity: 0; position:absolute; top:0; left: 0; background:#fff; font-size: 12px; color:#2ea2cc; height: 37px; width:48px; text-align:center; ;padding: 11px 0 0 0; font-weight: bolder;}
                 #msreader-widget-reader .change-avatar-text:hover {opacity: 0.95}
-                #msreader-widget-reader ul.user-stats {clear: both; }
+                #msreader-widget-reader ul.user-stats {clear: both; text-align:center;}
                 #msreader-widget-reader ul.user-stats li {display:inline-block; width:127px; text-align:center;}
                 #msreader-widget-reader h4 {margin: 15px 0 15px 0;}
                 #msreader-widget-reader .user-posts {float: right; margin-top: 10px;}
@@ -51,7 +51,6 @@ class WMD_MSReader_Module_UserWidget extends WMD_MSReader_Modules {
         $user_info = array();
 
         $user_info['main']['avatar'] = '<div class="user-avatar"><a title="Change avatar" href="'.admin_url('users.php?page=user-avatar').'"><div class="change-avatar-text">'.__( 'Change Avatar', 'wmd_msreader' ).'</div>'.get_avatar($current_user->ID, 48).'</a></div>';
-        $user_info['main']['my-posts'] = '<div class="user-posts"><small><a title="View your posts" href="'.$this->get_module_dashboard_url(array('author_id' => $current_user->ID), 'filter_blog_author').'">'.__( 'My Posts', 'wmd_msreader' ).'</a></small></div>';
         $user_info['main']['name'] = '<div class="user-name"><h3><a title="Edit profile" href="'.admin_url('profile.php').'">'.$current_user->display_name.'</a></h3></div>';
  
         //$user_info['main']['url'] = '<div class="user-site-url"><small><a title="Visit site" href="'.$user_site_url.'">'.str_replace('https://', '', str_replace('http://', '', $user_site_url)).'</a></small></div>';

@@ -1,7 +1,7 @@
 <?php
 $module = array(
 	'name' => __( 'Filter by author or site', 'wmd_msreader' ),
-	'description' => __( 'Lets users filter posts by author or site.', 'wmd_msreader' ),
+	'description' => __( 'Displays posts by selected author or site', 'wmd_msreader' ),
 	'slug' => 'filter_blog_author', 
 	'class' => 'WMD_MSReader_Module_FilterBlogAuthor',
     'can_be_default' => false,
@@ -12,6 +12,9 @@ class WMD_MSReader_Module_FilterBlogAuthor extends WMD_MSReader_Modules {
 	function init() {
 		add_filter('msreader_post_author', array($this,'add_author_link'),10,2);
         add_filter('msreader_post_blog', array($this,'add_blog_link'),10,2);
+
+        add_filter('msreader_rss_feeds_extra_enable_feed', array($this,'add_module_slug_to_array'),10,1);
+        add_filter('msreader_rss_feeds_enable_args', array($this,'add_module_slug_to_array'),10,1);
     }
 
     function add_author_link($name, $post) {
@@ -38,7 +41,7 @@ class WMD_MSReader_Module_FilterBlogAuthor extends WMD_MSReader_Modules {
 
     function query() {
         global $wpdb;
-        $current_user_id = get_current_user_id();
+
         $limit = $this->get_limit();
         
     	$query = "

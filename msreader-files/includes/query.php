@@ -2,12 +2,11 @@
 class WMD_MSReader_Query {
 	var $module;
 
-	var $cache_init = 2;
 	var $page = 1;
 	var $limit = 7;
 	var $limit_sample = 100;
-	var $last_date = 0;
 	var $args = array();
+	var $last_date;
 
 	var $blog_id;
 	var $post_id;
@@ -24,26 +23,28 @@ class WMD_MSReader_Query {
 		//apply filters to some default variables
 		$this->limit = apply_filters('msreader_query_limit_default', $this->limit);
 		$this->limit_sample = apply_filters('msreader_query_limit_sample_default', $this->limit_sample);
+
+		//set initial last date as right now
+		$this->last_date = time();
     }
 
 	function load_module($module, $is_main_query = 0) {
 		//load module
 		$this->module = $module;
+		$this->module->load_module();
 
 		//pass parameters to module
 		$this->module->main = $is_main_query ? 1 : 0;
-		$this->module->cache_init = $this->cache_init;
 		$this->module->page = $this->page;
 		$this->module->limit = $this->limit;
 		$this->module->limit_sample = $this->limit_sample;
 		$this->module->args = $this->args;
+		$this->module->last_date = $this->last_date;
 
 		//check if its a query used by everybody
 		$store_user_id = !$this->module->details['global_cache'] ? get_current_user_id() : '';
 		//set up secret code for query
-		$this->module->query_hashes['get_posts'] = md5($this->cache_init.$this->module->details['slug'].$this->page.$this->limit.http_build_query($this->args).$store_user_id);
-
-		$this->module->load_module();
+		$this->module->query_hashes['get_posts'] = md5($this->module->cache_init.$this->module->details['slug'].$this->page.$this->limit.http_build_query($this->args).$store_user_id);
 	}
 
 	function get_query_details() {
@@ -105,8 +106,9 @@ class WMD_MSReader_Query {
 				$restore = 1;
 				switch_to_blog($this->blog_id);
 			}
-			
-			wp_publish_post( $this->post_id );
+
+			if(current_user_can('publish_posts'))
+				wp_publish_post( $this->post_id );
 
 			$status = true;
 
@@ -211,19 +213,16 @@ class WMD_MSReader_Query {
 				switch_to_blog($this->blog_id);
 			}
 
-			if(!current_user_can('moderate_comment'))
-				return false;
-
-			$status = $this->moderate_comment_action($this->comment_moderate_data['action'], $this->comment_moderate_data['comment_id']);
-
+			if(current_user_can('moderate_comment'))
+				$status = $this->moderate_comment_action($this->comment_moderate_data['action'], $this->comment_moderate_data['comment_id']);
+			else
+				$status = 0;
+			
 			if(isset($restore))
 				restore_current_blog();
 
 			return $status;
 		}
-	}
-
-	function get_posts_rss() {
 	}
 
 	//Helpers
@@ -234,6 +233,8 @@ class WMD_MSReader_Query {
 		$post->post_content = stripslashes($post->post_content);
 
 		//get blog details
+		if(!isset($post->BLOG_ID))
+			$post->BLOG_ID = get_current_blog_id();
 		if(!isset($blog_details[$post->BLOG_ID]))
 			$blog_details[$post->BLOG_ID] = get_blog_details($post->BLOG_ID);
 		$post->blog_details = $blog_details[$post->BLOG_ID];

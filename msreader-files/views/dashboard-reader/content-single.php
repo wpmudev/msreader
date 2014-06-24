@@ -5,16 +5,17 @@
 		<a href="<?php echo get_permalink($post->ID); ?>"><?php _e( 'View Orginal', 'wmd_msreader' ); ?></a><?php
 		if(current_user_can( 'edit_others_posts', $post->ID ) || ($post->post_author == $current_user_id))
 			 edit_post_link(__( 'Edit', 'wmd_msreader' ), '', '');
-		if(current_user_can( 'publish_posts', $post->ID ) && $post->post_status != 'publish')
-			echo '<button class="publish">'.__( 'Publish', 'wmd_msreader' ).'</button>';
+		if($post->post_status != 'publish' && current_user_can( 'publish_posts', $post->ID ))
+			echo '<button class="publish" data-nonce="'.wp_create_nonce( 'publish_post' ).'">'.__( 'Publish', 'wmd_msreader' ).'</button>';
+		echo apply_filters('msreader_dashboard_single_links', '', $post);
 		?>
 	</div>
-	<span class="spinner spinner-save"></span>
 	<button class="close dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Close overlay', 'wmd_msreader' ); ?></span></button>
+	<span class="spinner spinner-save"></span>
 </div>
 <div class="msreader-post">
 	<div class="msreader-post-holder">
-		<h3 class="theme-name"><?php the_title(); ?><span class="theme-version msreader-blogname"><?php echo apply_filters('msreader_post_blog', $post->blog_details->blogname, $post); ?></span></h3>
+		<h3 class="theme-name"><?php echo apply_filters('msreader_post_title', get_the_title(), $post); ?><span class="theme-version msreader-blogname"><?php echo apply_filters('msreader_post_blog', $post->blog_details->blogname, $post); ?></span></h3>
 		<h4 class="theme-author">
 			<?php echo $post->post_date_relative; ?>
 			<?php _e( 'ago', 'wmd_msreader' ); ?>
@@ -33,7 +34,7 @@
 			<span class="spinner spinner-save"></span>
 		</div>
 		<?php } ?>
-		<div id="the-comment-list" class="comments">
+		<div id="the-comment-list" class="comments" data-nonce="<?php echo wp_create_nonce( 'moderate_comment' ); ?>">
 			<?php include('comments.php'); ?>
 		</div>
 	</div>
@@ -46,10 +47,11 @@
 					<textarea id="comment" name="comment_add_data[comment]" cols="44" rows="7" aria-required="true"></textarea>
 				</p>
 				<p class="form-submit">
-					<span class="reply-info" style="display:none;"><small><?php _e('Replay to', 'wmd_msreader' ); ?>:</small> <strong class="reply-parent-name">Trex admin</strong> <small>(<a class="reply-cancel" href="#"><?php _e('cancel', 'wmd_msreader' ); ?></a>)</small></span>
+					<span class="reply-info" style="display:none;"><small><?php _e('Reply to', 'wmd_msreader' ); ?>:</small> <strong class="reply-parent-name">Trex admin</strong> <small>(<a class="reply-cancel" href="#"><?php _e('cancel', 'wmd_msreader' ); ?></a>)</small></span>
 					<input name="submit" type="button" class="button button-primary right" id="submit" value="Post Comment">
 					<span class="spinner spinner-save"></span>
 					<input type="hidden" name="comment_add_data[comment_parent]" id="comment-parent" value="0">
+					<input type="hidden" name="nonce_add_comment" id="nonce_add_comment" value="<?php echo wp_create_nonce( 'add_comment' ); ?>">
 				</p>
 			</form>
 		<?php } else { ?>

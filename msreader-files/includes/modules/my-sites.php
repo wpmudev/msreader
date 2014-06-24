@@ -1,7 +1,7 @@
 <?php
 $module = array(
 	'name' => __( 'My Sites', 'wmd_msreader' ),
-	'description' => __( 'Displays posts from users sites', 'wmd_msreader' ),
+	'description' => __( 'Displays posts from current users sites', 'wmd_msreader' ),
 	'slug' => 'my_sites', 
 	'class' => 'WMD_MSReader_Module_MySites'
 );
@@ -30,19 +30,23 @@ class WMD_MSReader_Module_MySites extends WMD_MSReader_Modules {
             $user_sites_ids[] = $user_site->userblog_id;
         $user_sites_ids = implode(',', $user_sites_ids);
 
-    	$query = "
-            SELECT posts.BLOG_ID AS BLOG_ID, ID, post_author, post_date, post_date_gmt, post_content, post_title
-            FROM $this->db_network_posts AS posts
-            INNER JOIN $this->db_blogs AS blogs ON blogs.blog_id = posts.BLOG_ID
-            WHERE blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
-            AND post_status = 'publish'
-            AND post_password = ''
-            AND posts.BLOG_ID IN($user_sites_ids)
-            ORDER BY post_date_gmt DESC
-            $limit
-        ";
-        $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $user_sites_ids);
-        $posts = $wpdb->get_results($query);
+        if($user_sites_ids) {
+        	$query = "
+                SELECT posts.BLOG_ID AS BLOG_ID, ID, post_author, post_date, post_date_gmt, post_content, post_title
+                FROM $this->db_network_posts AS posts
+                INNER JOIN $this->db_blogs AS blogs ON blogs.blog_id = posts.BLOG_ID
+                WHERE blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
+                AND post_status = 'publish'
+                AND post_password = ''
+                AND posts.BLOG_ID IN($user_sites_ids)
+                ORDER BY post_date_gmt DESC
+                $limit
+            ";
+            $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $user_sites_ids);
+            $posts = $wpdb->get_results($query);
+        }
+        else
+            $posts = array();
 
     	return $posts;
     }

@@ -1,0 +1,27 @@
+#msreader-control-modules label {
+	line-height: 28px;
+}
+#msreader-control-modules .sub-options {
+	display: none;
+}
+.msreader-control-module {
+	margin: 5px 0;
+}
+#msreader-control-modules .sub-options .postbox {
+	cursor: default;
+	padding: 12px;
+	margin: 0 0 5px 0;
+	display: inline-block;
+}
+#msreader-control-modules button {
+	outline: none;
+	margin-bottom: 0 !important;
+}
+#msreader-control-modules button.active {
+	-webkit-border-radius: 3px 3px 0 0;
+	border-radius: 3px 3px 0 0;
+	border-color:#e5e5e5;
+	box-shadow: none;
+	border-bottom: none;
+	background: #fff;
+}

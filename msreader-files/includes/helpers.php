@@ -7,6 +7,23 @@ class WMD_MSReader_Helpers {
         $this->plugin = $plugin;
     }
 
+    //plugin specific
+	function is_module_enabled($slug, $options = 0) {
+		$options = $options ? $options : $this->plugin['site_options'];
+		return (isset($this->plugin['site_options']['modules']) && is_array($options['modules']) && array_key_exists($slug, $options['modules'])) || in_array($slug, apply_filters('msreader_activate_modules', array())) ? true : false;
+	}
+
+	//general
+	function is_page_link_active($link, $soft = 0) {
+		$link_query = parse_url($link);
+		$link_query = isset($link_query['query']) ? $link_query['query'] : '';
+		if($soft && strpos($_SERVER['QUERY_STRING'], $link_query) !== false)
+			return true;
+		elseif($_SERVER['QUERY_STRING'] == $link_query)
+			return true;
+		else
+			return false;
+	}
 	function get_user_roles_per_blog($user_id) {
 		global $wpdb;
 		$msreader_edublogs_db_user_meta = $wpdb->base_prefix.'usermeta';
@@ -34,14 +51,20 @@ class WMD_MSReader_Helpers {
 		return $user_roles;
 	}
     
-	function the_select_options($array, $current) {
+	function the_select_options($array, $current, $echo = 1) {
 		if(empty($array))
 			$array = array( 1 => 'True', 0 => 'False' );
 
+		$return = '';
 		foreach( $array as $name => $label ) {
 			$selected = selected( $current, $name, false );
-			echo '<option value="'.$name.'" '.$selected.'>'.$label.'</option>';
+			$return .= '<option value="'.$name.'" '.$selected.'>'.$label.'</option>';
 		}
+
+		if($echo)
+			echo $return;
+		else
+			return $return;
 	}
 
 	function ensure_boolen($array) {

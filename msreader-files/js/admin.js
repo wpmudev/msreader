@@ -8,7 +8,7 @@ var MSReader = function($) {
 	msreader_main_query.comments_end = 0;
 	msreader_main_query.comments_offset = 0;
 	msreader_main_query.comments_removed = 0;
-	msreader_main_query.comment_replay_to = 0;
+	msreader_main_query.comment_reply_to = 0;
 
 	$(document).ready(function() {
 		//handle sticky sidebar on scroll
@@ -85,6 +85,7 @@ var MSReader = function($) {
 					comments_removed: msreader_main_query.comments_removed
 				};
 				args = {
+					source: 'msreader',
 					action: 'dashboard_display_comments_ajax',
 					blog_id: blog_id,
 					post_id: post_id,
@@ -117,28 +118,30 @@ var MSReader = function($) {
 		$('.msreader-post-overlay').on('click', '.msreader-post-header-navigation .links .publish', function(){
 			var blog_id = msreader_main_query.current_post.attr("data-blog_id");
 			var post_id = msreader_main_query.current_post.attr("data-post_id");
+			var nonce = $(this).attr("data-nonce");
 
-			publish_post(blog_id, post_id);
+			publish_post(blog_id, post_id, nonce);
 		})
 		$('.msreader-posts').on('click', '.msreader-post-actions .publish', function(){
 			var blog_id = $(this).parents('.msreader-post').attr("data-blog_id");
 			var post_id = $(this).parents('.msreader-post').attr("data-post_id");
+			var nonce = $(this).attr("data-nonce");
 
-			publish_post(blog_id, post_id);
+			publish_post(blog_id, post_id, nonce);
 		})
 
 		
-		//set replay data
-		$('.msreader-post-overlay').on('click', '.comments .comment-replay', function(){
+		//set reply data
+		$('.msreader-post-overlay').on('click', '.comments .comment-reply', function(){
 			var window_width = get_window_width();
 			var comment = $(this).parents('.comment-body');
 			var form = $(this).parents('.msreader-post').find('.msreader-add-comment');
 			var reply_info = form.find('.reply-info');
 			var comment_offset;
 
-			$('.msreader-post-overlay .comments .comment-replay').removeClass('button-primary');
+			$('.msreader-post-overlay .comments .comment-reply').removeClass('button-primary');
 			$(this).addClass('button-primary');
-			msreader_main_query.comment_replay_to = comment.attr("data-comment_id");
+			msreader_main_query.comment_reply_to = comment.attr("data-comment_id");
 			
 			//scroll to reply comment
 			if(window_width <= 1024) {
@@ -162,14 +165,14 @@ var MSReader = function($) {
 			reply_info.delay('200').fadeIn('fast');
 		})
 
-		//cancel replay stuff
+		//cancel reply stuff
 		$('.msreader-post-overlay').on('click', '.msreader-add-comment .reply-cancel', function(event){
 			event.preventDefault;
 
 			var window_width = get_window_width();
 
-			msreader_main_query.comment_replay_to = 0;
-			$(this).parents('.msreader-post-overlay').find('.comments .comment-replay').removeClass('button-primary');
+			msreader_main_query.comment_reply_to = 0;
+			$(this).parents('.msreader-post-overlay').find('.comments .comment-reply').removeClass('button-primary');
 			$(this).parents('.reply-info').fadeOut('fast');
 
 			if(window_width <= 1024) {
@@ -194,8 +197,8 @@ var MSReader = function($) {
 			if(blog_id && post_id) {
 				form.find('.spinner').show();
 
-				if(msreader_main_query.comment_replay_to) {
-					article = $( 'article[data-comment_id="'+msreader_main_query.comment_replay_to+'"]' ).parent();
+				if(msreader_main_query.comment_reply_to) {
+					article = $( 'article[data-comment_id="'+msreader_main_query.comment_reply_to+'"]' ).parent();
 					level = article.parents('ul.children').length;
 					level = level + 2;
 
@@ -209,20 +212,21 @@ var MSReader = function($) {
 
 				comment_add_data = {
 					comment: form.find('#comment').val(),
-					comment_parent: msreader_main_query.comment_replay_to,
+					comment_parent: msreader_main_query.comment_reply_to,
 					level: level,
 				};
 				args = {
+					source: 'msreader',
 					action: 'dashboard_add_get_comment_ajax',
 					blog_id: blog_id,
 					post_id: post_id,
 					comment_add_data: comment_add_data,
+					nonce: form.find('#nonce_add_comment').val()
 				};
 
 				$.post(ajaxurl, args, function(response) {
 					form.find('.spinner').hide();
 					if(response && response != 0) {
-						console.log(response);
 						response = $($.parseHTML(response));
 						
 						count = response.length;
@@ -231,7 +235,7 @@ var MSReader = function($) {
 							//clear out old text in form
 							form.find('#comment').val('');
 
-							if(msreader_main_query.comment_replay_to) {
+							if(msreader_main_query.comment_reply_to) {
 								var article_children = article.find('ul.children:first');
 
 								if(article_children.length)
@@ -246,10 +250,10 @@ var MSReader = function($) {
 								msreader_main_query.comments_offset = msreader_main_query.comments_offset +1;
 							}
 
-							if(!msreader_main_query.comment_replay_to || response.is('li:last'))
+							if(!msreader_main_query.comment_reply_to || response.is('li:last'))
 								comment_offset = $(".msreader-comments").scrollTop() + $(".msreader-comments").height();
 
-							if(window_width <= 1024 && msreader_main_query.comment_replay_to) {
+							if(window_width <= 1024 && msreader_main_query.comment_reply_to) {
 								form.slideUp(function() {
 									$('.msreader-post-overlay .msreader-post').scrollTop(comment_offset);
 									response.slideDown();
@@ -258,9 +262,9 @@ var MSReader = function($) {
 									form.slideDown();
 
 									//clear out reply stuff
-									if(msreader_main_query.comment_replay_to) {
-										msreader_main_query.comment_replay_to = 0;
-										$('.msreader-post-overlay .comments .comment-replay').removeClass('button-primary');
+									if(msreader_main_query.comment_reply_to) {
+										msreader_main_query.comment_reply_to = 0;
+										$('.msreader-post-overlay .comments .comment-reply').removeClass('button-primary');
 									}
 								});
 							}
@@ -270,9 +274,9 @@ var MSReader = function($) {
 									
 
 									//clear out reply stuff
-									if(msreader_main_query.comment_replay_to) {
-										msreader_main_query.comment_replay_to = 0;
-										$('.msreader-post-overlay .comments .comment-replay').removeClass('button-primary');
+									if(msreader_main_query.comment_reply_to) {
+										msreader_main_query.comment_reply_to = 0;
+										$('.msreader-post-overlay .comments .comment-reply').removeClass('button-primary');
 									}
 
 									//clear out old text in form
@@ -301,6 +305,7 @@ var MSReader = function($) {
 			var comment_id = comment.attr("data-comment_id");
 			var action = button.attr("data-action");
 			var comment_offset = $(".msreader-comments").scrollTop() + comment.position().top + comment.height() - ($(".msreader-comments").height()/2);
+			var nonce = comment.parents('.comments').attr("data-nonce");
 
 			button.parents('.comment-moderation').addClass('visible');
 			if(blog_id && post_id) {
@@ -329,10 +334,12 @@ var MSReader = function($) {
 							action: action
 						};
 						args = {
+							source: 'msreader',
 							action: 'dashboard_moderate_get_comment_ajax',
 							blog_id: blog_id,
 							post_id: post_id,
 							comment_moderate_data: comment_moderate_data,
+							nonce: nonce
 						};
 
 						$.post(ajaxurl, args, function(response) {
@@ -389,7 +396,7 @@ var MSReader = function($) {
 			//reset comments options
 			msreader_main_query.comments_page = 1;
 			msreader_main_query.comments_end = 0;
-			msreader_main_query.comment_replay_to = 0;
+			msreader_main_query.comment_reply_to = 0;
 			msreader_main_query.comments_offset = 0;
 			msreader_main_query.comments_removed = 0;
 
@@ -397,14 +404,15 @@ var MSReader = function($) {
 			$("html, body").animate({ scrollTop: post.offset().top-$('#wpadminbar').height()-20 });
 
 			args = {
+				source: 'msreader',
 				action: 'dashboard_display_post_ajax',
 				blog_id: blog_id,
 				post_id: post_id,
 			};
 
 			$.post(ajaxurl, args, function(response) {
-				post.find('.spinner').hide();
-				$('.msreader-post-header-navigation').find('.spinner').hide();
+				post.find('.spinner').fadeOut(100, function() {$(this).hide()});
+				$('.msreader-post-header-navigation .spinner').fadeOut(200, function() {$(this).hide()});;
 				$('body').addClass('theme-overlay-open');
 
 				if(response && response != 0) {
@@ -414,7 +422,7 @@ var MSReader = function($) {
 					//add post body to overlay
 					var msreader_post_overlay = $('.msreader-post-overlay');
 					msreader_post_overlay.find('.msreader-post-wrap').html(response);
-					msreader_post_overlay.fadeIn('fast');
+					msreader_post_overlay.fadeIn(200);
 
 					//scroll comments to the bottom
 					$(".msreader-comments").scrollTop($('.msreader-comments .comments').height());
@@ -454,8 +462,10 @@ var MSReader = function($) {
 		$('.msreader-post-loader').show();
 
 		args = {
+			source: 'msreader',
 			action: 'dashboard_display_posts_ajax',
 			page: msreader_main_query.page + 1,
+			last_date: msreader_main_query.last_date,
 			module: msreader_main_query.module,
 			args: msreader_main_query.args,
 		};
@@ -463,17 +473,15 @@ var MSReader = function($) {
 		$.post(ajaxurl, args, function(response) {
 			$('.msreader-post-loader').hide();
 			if(response && response != 0) {
-				console.log(response);
 				response = $($.parseHTML(response));
-				count = response.length;
-				if(count > 0)
-					$('.msreader-post-loader').before(response);
-
-
+				count = response.filter('.msreader-post').length;
+				
+				$('.msreader-post-loader').before(response);
 
 				if(msreader_main_query.limit > count)
 					msreader_main_query.end = 1;
 
+				msreader_main_query.last_date = $('.msreader-posts .msreader-post:last .post-time').attr('data-post_time');
 				msreader_main_query.page = msreader_main_query.page + 1;
 				msreader_main_query.ajax_loading = 0;
 			}
@@ -485,44 +493,48 @@ var MSReader = function($) {
 		});		
 	}
 
-	this.remove_post_from_list = function(blog_id, post_id, fade) {
+	this.remove_post_from_list = function(blog_id, post_id, selector, fade) {
 		if(typeof(fade)==='undefined') fade = 1;
 
-		var post = $( ".msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"']" );
+		if(typeof(selector)==='undefined')
+			var selector = $( ".msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"']" );
 		if(fade)
-			post.fadeTo(400, 0.5);
+			selector.fadeTo(200, 0.5);
 		else
-			post.hide();
+			selector.hide();
 
 		if(fade && $('.msreader-posts .msreader-post:visible').length == 0)
 			$('#msreader-404').show();
 	}
 
-	this.add_post_to_list = function(blog_id, post_id, fade) {
+	this.add_post_to_list = function(blog_id, post_id, selector, fade) {
 		if(typeof(fade)==='undefined') fade = 1;
 
-		var post = $( ".msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"']" );
+		if(typeof(selector)==='undefined')
+			var selector = $( ".msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"']" );
 		if(fade)
-			post.fadeTo(400, 1);
+			selector.fadeTo(200, 1);
 		else
-			post.show();
+			selector.show();
 
 		if(fade && $('.msreader-posts .msreader-post:visible').length != 0)
 			$('#msreader-404').hide();
 	}
 
-	this.publish_post = function(blog_id, post_id) {
+	this.publish_post = function(blog_id, post_id, nonce) {
 		if(blog_id && post_id) {
-			$(".msreader-post-header-navigation .spinner, .msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"'] .msreader-post-actions .spinner").show();
+			$(".msreader-post-header-navigation .spinner, .msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"'] .spinner").show();
 
 			args = {
+				source: 'msreader',
 				action: 'dashboard_publish_post',
 				blog_id: blog_id,
-				post_id: post_id
+				post_id: post_id,
+				nonce: nonce
 			};
 
 			$.post(ajaxurl, args, function(response) {
-				$(".msreader-post-header-navigation .spinner, .msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"'] .msreader-post-actions .spinner").hide();
+				$(".msreader-post-header-navigation .spinner, .msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"'] .spinner").fadeOut(200, function() {$(this).hide()});;
 
 				if(response && response != 0) {
 					$( ".msreader-post-overlay .msreader-post-header-navigation .links .publish, .msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"'] .msreader-post-actions .publish" ).text(response).prop( "disabled", true );

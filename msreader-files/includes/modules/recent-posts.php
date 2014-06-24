@@ -1,7 +1,7 @@
 <?php
 $module = array(
 	'name' => __( 'Recent Posts', 'wmd_msreader' ),
-	'description' => __( 'Displays my posts', 'wmd_msreader' ),
+	'description' => __( 'Displays recently added posts', 'wmd_msreader' ),
 	'slug' => 'recent_posts', 
 	'class' => 'WMD_MSReader_Module_RecentPost',
     'global_cache' => true
@@ -20,7 +20,7 @@ class WMD_MSReader_Module_RecentPost extends WMD_MSReader_Modules {
 
     function query() {
         global $wpdb;
-        $current_user_id = get_current_user_id();
+
         $limit = $this->get_limit();
         
     	$query = "

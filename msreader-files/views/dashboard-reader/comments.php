@@ -56,7 +56,7 @@ class MSReader_Dashboard_Walker_Comment extends Walker_Comment {
 			$depth = (isset($msreader_comment_level) && $msreader_comment_level > $depth) ? $msreader_comment_level : $depth;
 			if(comments_open( $comment->comment_post_ID ) && $depth < $args['max_depth'] && !('0' == $comment->comment_approved && !current_user_can('moderate_comments'))) { ?>
 			<div class="reply"<?php echo ('0' == $comment->comment_approved) ? ' style="display:none"' : ''; ?>>
-				<button class="comment-replay button button-secondary"><?php _e( 'Reply', 'wmd_msreader' ); ?></button>
+				<button class="comment-reply button button-secondary"><?php _e( 'Reply', 'wmd_msreader' ); ?></button>
 			</div>
 			<?php 
 			} 

@@ -4,12 +4,17 @@ $module = array(
 	'description' => __( 'Displays popular posts', 'wmd_msreader' ),
 	'slug' => 'popular_posts', 
 	'class' => 'WMD_MSReader_Module_PopularPost',
-    'global_cache' => true
+    'global_cache' => true,
+    'default_options' => array(
+        'minimum_comment_count' => 5
+    )
 );
 
 class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
 	function init() {
 		add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_link_to_widget'), 20 );
+
+        add_filter( 'msreader_module_options_'.$this->details['slug'], array($this,'add_options_html'), 10, 2 );
     }
 
     function add_link_to_widget($widgets) {
@@ -20,9 +25,11 @@ class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
 
     function query() {
         global $wpdb;
-        $current_user_id = get_current_user_id();
+        
         $limit = $this->get_limit();
         $limit_sample = $this->get_limit($this->limit_sample,1);
+
+        $minimum_comment_count = $this->options['minimum_comment_count'];
         
     	$query = "
             SELECT BLOG_ID, ID, post_author, post_date_gmt, post_date, post_content, post_title, comment_count
@@ -36,13 +43,20 @@ class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
                 ORDER BY post_date_gmt DESC
                 $limit_sample
             ) a
-            WHERE comment_count > 5
+            WHERE comment_count > $minimum_comment_count
             ORDER BY post_date_gmt DESC
             $limit
         ";
-        $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $limit_sample);
+        $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $limit_sample, $minimum_comment_count);
         $posts = $wpdb->get_results($query);
 
     	return $posts;
+    }
+
+    function add_options_html($blank, $options) {
+        return '
+            <label for="wmd_msreader_options[name]">'.__( 'Minimum number of comments to the post to treat it as popular', 'wmd_msreader' ).':</label><br/>
+            <input type="number" class="small-text ltr" name="wmd_msreader_options[modules_options]['.$this->details['slug'].'][minimum_comment_count]" value="'.$options['minimum_comment_count'].'" />
+        ';
     }
 }

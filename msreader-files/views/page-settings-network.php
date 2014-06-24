@@ -34,7 +34,7 @@
 				</td>
 			</tr>
 
-			<tr valign="top">
+			<tr id="msreader-control-modules" valign="top">
 				<th scope="row">
 					<label for="wmd_msreader_options[modules]"><?php _e('Which features would you like to enable for The Reader?', 'wmd_msreader') ?></label>
 				</th>
@@ -42,15 +42,17 @@
 				<td>
 					<?php 
 					foreach ($this->available_modules as $slug => $module) {
-						$current = isset($options['modules'][$module['slug']]) ? $options['modules'][$module['slug']] : 0;
-						echo '<label><input name="wmd_msreader_options[modules]['.$module['slug'].']" data-module="'.$module['slug'].'" class="wmd_msreader_options_modules" type="checkbox" value="true" '.checked( 'true', $current, 0).'> '.$module['name'].' - '.$module['description'].'.</label>';
+						$current = $this->helpers->is_module_enabled($module['slug'], $this->plugin['site_options']) ? 'true' : 0;
+						echo '<div class="msreader-control-module"><label><input name="wmd_msreader_options[modules]['.$module['slug'].']" data-module="'.$module['slug'].'" class="wmd_msreader_options_modules" type="checkbox" value="true" '.checked( 'true', $current, 0).'> <strong>'.$module['name'].'</strong> - '.$module['description'].'.</label>';
 						$module_options = isset($this->plugin['site_options']['modules_options'][$slug]) ? $this->plugin['site_options']['modules_options'][$slug] : array();
 						$module_options = apply_filters('msreader_module_options_'.$module['slug'], '', $module_options);
 						if($module_options && count($this->plugin['site_options']['modules_options'][$slug])) {
-							echo ' <button class="button button-secondary open-module-options" data-module="'.$slug.'" href="#">'.__('Configure', 'wmd_msreader').'</button>';
-							echo '<div data-module="'.$slug.'" class="sub-options">'.$module_options.'</div>';
+							echo ' <button class="button button-secondary open-module-options" data-module="'.$slug.'">'.__('Configure', 'wmd_msreader').'</button><br/>';
+							echo '<div data-module="'.$slug.'" class="sub-options"><div class="postbox">'.$module_options.'</div></div>';
 						}
-						echo '<br/>';
+						else
+							echo '<br/>';
+						echo '</div>';
 					}
 					?>
 				</td>
@@ -68,7 +70,7 @@
 							if(isset($this->available_modules[$module['slug']]['can_be_default']) && $this->available_modules[$module['slug']]['can_be_default'] == false)
 								continue;
 
-							$display = !$this->is_module_enabled($module['slug']) ? ' style="display: none;"' : '';
+							$display = !$this->helpers->is_module_enabled($module['slug']) ? ' style="display: none;"' : '';
 							echo '<option value="'.$module['slug'].'" data-module="'.$module['slug'].'" '.$display.selected( $options['default_module'], $module['slug'], false ).'>'.$module['name'].'</option>';
 						}
 						echo '</select>';

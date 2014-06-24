@@ -1,7 +1,7 @@
 <div id="msreader-dashboard" class="wrap">
 
 	<?php screen_icon(); ?>
-	<h2><?php echo $query_details['page_title']; ?></h2>
+	<h2><?php echo apply_filters('msreader_dashboard_page_title', $query_details['page_title']); ?></h2>
 
 	<?php 
 	if($this->main_query->module->message) {
@@ -22,7 +22,8 @@
 				<?php include_once('sidebar.php'); ?>
 			</div>
 
-			<div id="postbox-container-2" class="msreader-posts postbox-container">
+			<div id="postbox-container-2" class="msreader-posts postbox-container <?php echo 'msreader_module_'.$this->main_query->module->details['slug']; ?>">
+				<?php do_action('msreader_dashboard_before_post_list'); ?>
 				<?php include('404.php'); ?>
 				<div class="msreader-post-loader">
 					<img alt="<?php _e( 'Loading...', 'wmd_msreader' ); ?>" src="<?php echo includes_url('images/spinner-2x.gif'); ?>"/>

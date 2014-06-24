@@ -38,10 +38,13 @@ foreach ($sidebar_widgets as $slug => $details) {
 						continue;
 					
 					//check for active url so class can be added
-					$link_query = parse_url($value['link']);
-					$link_query = isset($link_query['query']) ? $link_query['query'] : '';
 					if(isset($value['link'])){
-						$active = (strpos($_SERVER['QUERY_STRING'], $link_query) !== false || (strpos($link_query,'module='.$this->plugin['site_options']['default_module']) !== false) && !isset($_GET['module'])) ? ' class="active"' : '';
+						$link_query = parse_url($value['link']);
+						$link_query = isset($link_query['query']) ? $link_query['query'] : '';
+						$link_args = array();
+						parse_str($link_query, $link_args);
+
+						$active = ($this->helpers->is_page_link_active($value['link']) || ($link_args['module'] == $this->plugin['site_options']['default_module'] && !isset($_GET['module']))) ? ' class="active"' : '';
 						echo '<li'.$active.'>'.(isset($value['before']) ? $value['before'] : '').'<a href="'.$value['link'].'">'.$value['title'].'</a>'.(isset($value['after']) ? $value['after'] : '').'</li>';
 					}
 					else

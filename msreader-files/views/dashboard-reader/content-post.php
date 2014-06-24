@@ -1,11 +1,9 @@
-<div class="postbox msreader-post" data-blog_id="<?php echo $post->BLOG_ID ?>" data-post_id="<?php echo get_the_ID(); ?>">
+<div class="postbox <?php echo implode(' ', apply_filters('msreader_post_class', array('msreader-post'), $post)); ?>" data-blog_id="<?php echo $post->BLOG_ID ?>" data-post_id="<?php echo get_the_ID(); ?>">
+	<div class="post-spinner spinner spinner-save"></div>
+
 	<div class="msreader-post-content">
 		<div class="inside">
-			<?php 
-			echo apply_filters('msreader_list_post_title', 
-			'<h2>'.get_the_title().'</h2>', 
-			$post); 
-			?>
+			<h2><?php echo apply_filters('msreader_list_post_title', apply_filters('msreader_post_title', get_the_title(), $post), $post); ?></h2>
 			<?php 
 			if($post->featured_media_html)
 				echo '<div class="msreader_featured_media"><center>'.$post->featured_media_html.'</center></div>';
@@ -19,7 +17,6 @@
 				'<button class="right button button-secondary msreader-open-post">'. __( 'Read More', 'wmd_msreader' ) .'</button>', 
 				$post); 
 				?>
-				<span class="spinner spinner-save"></span>
 			</div>
 		</div>
 	</div>
@@ -29,7 +26,7 @@
 			<?php echo get_avatar($post->post_author, 48); ?>
 
 			<div class="vertical-middle">
-				<span data-post_time="<?php echo $post->post_date_stamp; ?>"><?php echo $post->post_date_relative; ?></span>
+				<span class="post-time" data-post_time="<?php echo $post->post_date_stamp; ?>"><?php echo $post->post_date_relative; ?></span>
 				<?php _e( 'ago', 'wmd_msreader' ); ?>
 				<?php _e( 'by', 'wmd_msreader' ); ?>
 				<?php echo apply_filters('msreader_post_author', get_the_author(), $post); ?>
