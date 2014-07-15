@@ -8,7 +8,7 @@ Network: false
 Text Domain: wmd_msreader
 Author: WPMU DEV
 Author URI: http://premium.wpmudev.org/
-WDP ID: 0
+WDP ID: 910241
 */
 
 define( 'MSREADER_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
