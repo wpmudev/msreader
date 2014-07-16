@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: MSReader\n"
-"POT-Creation-Date: 2014-07-04 12:34+0100\n"
-"PO-Revision-Date: 2014-07-04 12:34+0100\n"
+"POT-Creation-Date: 2014-07-16 09:17+0100\n"
+"PO-Revision-Date: 2014-07-16 09:17+0100\n"
 "Last-Translator: \n"
 "Language-Team: Incsub\n"
 "Language: en\n"
@@ -16,6 +16,16 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-SearchPath-0: C:\\Programs Portable\\EasyPHP\\data\\localweb"
 "\\wordpress-incsub\\wp-content\\plugins\\msreader\n"
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/helpers.php:56
+msgid "True"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/helpers.php:56
+msgid "False"
+msgstr ""
 
 #: C:\Programs
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules.php:83
@@ -317,7 +327,8 @@ msgstr ""
 
 #: C:\Programs
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/rss-feeds.php:202
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader.php:85
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/sidebar.php:7
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader.php:86
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader.php:314
 msgid "Reader"
 msgstr ""
@@ -386,6 +397,11 @@ msgstr ""
 #: C:\Programs
 #: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/user-widget.php:54
 msgid "Change Avatar"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/user-widget.php:57
+msgid "Edit Profile"
 msgstr ""
 
 #: C:\Programs
@@ -602,6 +618,6 @@ msgid "Published"
 msgstr ""
 
 #: C:\Programs
-#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader.php:497
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader.php:496
 msgid "Successfully saved"
 msgstr ""

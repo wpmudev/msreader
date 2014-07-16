@@ -1,14 +1,14 @@
 <?php
 /*
 Plugin Name: Reader
-Plugin URI:
+Plugin URI: https://premium.wpmudev.org/project/reader/
 Description: Enabled reader that lets users browse posts inside network
-Version: 1
+Version: 1.0.1
 Network: false
 Text Domain: wmd_msreader
 Author: WPMU DEV
 Author URI: http://premium.wpmudev.org/
-WDP ID: 0
+WDP ID: 910241
 */
 
 define( 'MSREADER_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
@@ -26,7 +26,7 @@ class WMD_MSReader {
 	function __construct() {
 		//loads dashboard stuff
 		global $wpmudev_notices;
-		$wpmudev_notices[] = array( 'id'=> 0, 'name'=> 'Reader', 'screens' => array( 'dashboard_page_msreader', 'settings_page_msreader-network' ) );
+		$wpmudev_notices[] = array( 'id'=> 910241, 'name'=> 'Reader', 'screens' => array( 'dashboard_page_msreader', 'settings_page_msreader-network' ) );
 		if(file_exists(MSREADER_PLUGIN_DIR.'dash-notice/wpmudev-dash-notification.php'))
 			include_once(MSREADER_PLUGIN_DIR.'dash-notice/wpmudev-dash-notification.php');
 
