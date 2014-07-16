@@ -1,5 +1,9 @@
 (function($) {
 	$(document).ready(function() {
+		$('#msreader-page-name').on('input', function() {
+			$('.reader-menu-page').text($(this).val());
+		});
+
 		$('#msreader-control-modules .open-module-options').click(function(event) {
 			event.preventDefault();
 

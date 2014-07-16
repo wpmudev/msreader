@@ -1,18 +1,607 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: QuickEmbed\n"
-"POT-Creation-Date: 2013-04-04 13:13+0100\n"
-"PO-Revision-Date: 2013-04-04 13:14+0100\n"
+"Project-Id-Version: MSReader\n"
+"POT-Creation-Date: 2014-07-04 12:34+0100\n"
+"PO-Revision-Date: 2014-07-04 12:34+0100\n"
 "Last-Translator: \n"
 "Language-Team: Incsub\n"
-"Language: English\n"
+"Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.5.4\n"
+"X-Generator: Poedit 1.6.4\n"
 "X-Poedit-KeywordsList: __;_e\n"
-"X-Poedit-Basepath: C:\\Programs Portable\\xampp\\htdocs\\wordpress-edublogs"
-"\\wp-content\\plugins\\QuickEmbed\n"
+"X-Poedit-Basepath: C:\\Programs Portable\\EasyPHP\\data\\localweb\\wordpress-"
+"incsub\\wp-content\\plugins\\msreader\\\n"
 "X-Poedit-SourceCharset: UTF-8\n"
-"X-Poedit-SearchPath-0: C:\\Programs Portable\\xampp\\htdocs\\wordpress-"
-"edublogs\\wp-content\\plugins\\QuickEmbed\n"
+"X-Poedit-SearchPath-0: C:\\Programs Portable\\EasyPHP\\data\\localweb"
+"\\wordpress-incsub\\wp-content\\plugins\\msreader\n"
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules.php:83
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:313
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:368
+msgid "Nothing here yet!"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:3
+msgid "Featured Posts"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:4
+msgid "Enables posts featuring"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:43
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:87
+msgid "This post is featured"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:50
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:60
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:75
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:241
+msgid "Unfeature"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:50
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:60
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:75
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:246
+msgid "Feature"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:77
+msgid "Include/Exclude from featured post list in Reader"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:87
+msgid "Saving..."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:240
+msgid "Featured"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:247
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:3
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:50
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:51
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:80
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:275
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:276
+msgid "Follow"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:260
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:289
+msgid "this site"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:315
+msgid ""
+"...But it looks like you are super admin which means you can feature posts "
+"by clicking \"Feature\" button."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/featured-posts.php:317
+msgid "Look for something interesting."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/filter-blog-author.php:3
+msgid "Filter by author or site"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/filter-blog-author.php:4
+msgid "Displays posts by selected author or site"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/filter-blog-author.php:21
+msgid "View all posts by this author"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/filter-blog-author.php:25
+msgid "View all posts on this site"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/filter-blog-author.php:32
+msgid "Posts from:"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/filter-blog-author.php:32
+msgid "Visit site"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/filter-blog-author.php:36
+msgid "Posts by:"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:4
+msgid "Enables following of sites in network"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:5
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:55
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:70
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:79
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:269
+msgid "Following"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:39
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:317
+msgid "Manage followed sites"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:56
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:81
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:270
+msgid "Unfollow"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:60
+msgid "Follow/Unfollow this site in Reader"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:226
+msgid "is now being followed."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:226
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:239
+msgid "Visit the site"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:239
+msgid "is no longer followed."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:251
+msgid "This action could not be performed."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:298
+msgid "Followed Sites"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:314
+#, php-format
+msgid "Unfollow %s"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:368
+msgid "You are not following any sites yet."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:370
+msgid "Look for something interesting"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:398
+msgid "Show the button on frontend and backend area"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:398
+msgid "Show the button only on frontend"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:398
+msgid "Show the button only on backend area"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:400
+msgid "IDs of sites followed by default (Comma separated)"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/follow.php:402
+msgid "Display follow button on"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/my-posts.php:3
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/my-posts.php:23
+msgid "My Posts"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/my-posts.php:4
+msgid "Displays current users posts"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/my-sites.php:3
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/user-widget.php:62
+msgid "My Sites"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/my-sites.php:4
+msgid "Displays posts from current users sites"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/popular-posts.php:3
+msgid "Popular Posts"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/popular-posts.php:4
+msgid "Displays popular posts"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/popular-posts.php:58
+msgid "Minimum number of comments to the post to treat it as popular"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/recent-posts.php:3
+msgid "Recent Posts"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/recent-posts.php:4
+msgid "Displays recently added posts"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/rss-feeds.php:3
+msgid "RSS Feeds"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/rss-feeds.php:4
+msgid "Allows users to get links for all post lists available in Reader"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/rss-feeds.php:38
+msgid "Get private RSS feed for this page"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/rss-feeds.php:57
+msgid "Private RSS feed for:"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/rss-feeds.php:62
+msgid ""
+"Please keep in mind that everyone with this feed URL might be able to view "
+"post content."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/rss-feeds.php:63
+msgid ""
+"You can reset ALL private feed URLs by clicking <a href=\"#\" class="
+"\"msreader-rss-feeds-reset-key\">here</a>."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/rss-feeds.php:202
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader.php:85
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader.php:314
+msgid "Reader"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/search.php:3
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/search.php:54
+msgid "Search"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/search.php:4
+msgid "Allows to search posts by title, author or tag"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/search.php:44
+msgid "Search..."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/search.php:46
+msgid "Title"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/search.php:49
+msgid "Author"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/search.php:52
+msgid "Tag"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/trending-tags.php:3
+msgid "Trending Tags"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/trending-tags.php:4
+msgid "Displays trending tags"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/trending-tags.php:112
+msgid "Number of links in \"Trending Tags\" widget"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/trending-tags.php:114
+msgid "Number of recently added tags to check and see which one are popular"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/user-widget.php:3
+msgid "User Info"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/user-widget.php:4
+msgid "Displays additional information about current user in main widget"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/includes/modules/user-widget.php:54
+msgid "Change Avatar"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/comments.php:27
+#, php-format
+msgid "%s <span class=\"says\">says:</span>"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/comments.php:47
+msgid "Approve"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/comments.php:49
+msgid "Unapprove"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/comments.php:51
+msgid "Spam"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/comments.php:52
+msgid "Trash"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/comments.php:59
+msgid "Reply"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/comments.php:89
+msgid "No comments yet :("
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/content-post.php:17
+msgid "Read More"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/content-post.php:30
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/content-single.php:21
+msgid "ago"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/content-post.php:31
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/content-single.php:22
+msgid "by"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/content-single.php:2
+msgid "Show previous post"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/content-single.php:3
+msgid "Show next post"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/content-single.php:5
+msgid "View Orginal"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/content-single.php:7
+msgid "Edit"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/content-single.php:9
+msgid "Publish"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/content-single.php:13
+msgid "Close overlay"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/content-single.php:33
+msgid "Load Previous Comments"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/content-single.php:45
+msgid "Add new comment"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/content-single.php:50
+msgid "Reply to"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/content-single.php:50
+msgid "cancel"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/content-single.php:59
+msgid "Comments are closed."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/index.php:30
+msgid "Loading..."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/dashboard-reader/sidebar.php:77
+#, php-format
+msgid "<a href=\"%s\">Change Reader settings</a>"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/page-settings-network.php:4
+msgid "Reader Settings"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/page-settings-network.php:4
+msgid "Go to Reader"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/page-settings-network.php:17
+msgid "Where should the Reader be?"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/page-settings-network.php:21
+msgid "The Reader should be under Dashboard"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/page-settings-network.php:22
+msgid "The Reader should replace the default WordPress Dashboard Home page."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/page-settings-network.php:28
+msgid "Whats The Reader page name?"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/page-settings-network.php:33
+msgid "This is the name that will be visible in menu"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/page-settings-network.php:39
+msgid "Which features would you like to enable for The Reader?"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/page-settings-network.php:50
+msgid "Configure"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/page-settings-network.php:62
+msgid "Which feature is default on The Reader page?"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/page-settings-network.php:79
+msgid ""
+"This is the default feature that will be used when The Reader page is opened"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader-files/views/page-settings-network.php:85
+msgid "Save Changes"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader.php:235
+msgid ""
+"<strong>Reader needs Post Indexer plugin to work.</strong> Currently it is "
+"not active. You can get this plugin <a href=\"https://premium.wpmudev.org/"
+"project/post-indexer/\">here</a>."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader.php:250
+#, php-format
+msgid ""
+"Reader plugin has been activated. It can be configured  by going to Network "
+"Admin > Settings > <a href=\"%s\">Reader</a>"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader.php:274
+msgid "Are you sure you want to do this?"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader.php:275
+msgid ""
+"Are you sure you want to do this? This action will also affect all replies "
+"for this comment."
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader.php:400
+msgid "Published"
+msgstr ""
+
+#: C:\Programs
+#: Portable\EasyPHP\data\localweb\wordpress-incsub\wp-content\plugins\msreader/msreader.php:497
+msgid "Successfully saved"
+msgstr ""

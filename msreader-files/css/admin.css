@@ -33,6 +33,9 @@
 	right: 20px;
 	margin: 0 !important;
 }
+.msreader-sidebar a {
+	text-decoration: none;
+}
 .msreader-widget {
 	margin-bottom: 20px;
 }
@@ -42,10 +45,8 @@
 .msreader-widget ul {
 	margin: 0;
 }
-.msreader-widget li a {
-	text-decoration: none;
-}
-.msreader-widget .active a {
+
+.msreader-widget .active a:first-child, .msreader-widget a.active {
 	color: #00a065;
 	font-weight: bold;
 }

@@ -2,6 +2,7 @@
 
 	<?php screen_icon(); ?>
 	<h2><?php echo apply_filters('msreader_dashboard_page_title', $query_details['page_title']); ?></h2>
+	<?php do_action('msreader_dashboard_after_page_title'); ?>
 
 	<?php 
 	if($this->main_query->module->message) {

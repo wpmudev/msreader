@@ -175,7 +175,7 @@ abstract class WMD_MSReader_Modules {
 
             $body = $dom->getElementsByTagName('body');
             $body = $body->item(0);
-            $return = $dom->saveHTML($body);
+            $return = $dom->saveXML($body);
             $return = str_replace('<body>', '', $return);
             $return = str_replace('</body>', '', $return);
         }
@@ -236,6 +236,12 @@ abstract class WMD_MSReader_Modules {
             }
         }
 
+        //remove remaining possibly unsafe JS
+        $return = str_replace('href="javascript:', 'href="', $return);
+        $return = str_replace("href='javascript:", "href='", $return);
+        $return = str_replace('onclick="', 'data-disabled="', $return);
+        $return = str_replace("onclick='", "data-disabled='", $return);
+
         return $return;
     }
 
@@ -261,7 +267,7 @@ abstract class WMD_MSReader_Modules {
         $module_slug = $module_slug ? $module_slug : $this->details['slug'];
 
         if(array_key_exists($module_slug, $msreader_modules)) {
-            $blog_id = is_user_member_of_blog() ? get_current_blog_id() : get_user_meta(get_current_user_id(), 'primary_blog', true);
+            $blog_id = (is_user_member_of_blog() || is_super_admin()) ? get_current_blog_id() : get_user_meta(get_current_user_id(), 'primary_blog', true);
             
             $url = get_admin_url($blog_id, 'index.php?page=msreader.php&module='.$module_slug);
             if(is_array($args) && count($args) > 0)

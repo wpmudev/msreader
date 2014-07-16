@@ -22,7 +22,7 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
 
         add_filter('msreader_dashboard_page_title', array( $this, "add_rss_icon" ), 50, 1 );
         add_action( 'admin_head', array( $this, "add_css_js" ) );
-        add_action('msreader_dashboard_before_post_list', array( $this, "add_rss_info_box" ), 5);
+        add_action('msreader_dashboard_after_page_title', array( $this, "add_rss_info_box" ), 5);
 
         add_action( 'wp_ajax_dashboard_get_rss_feed_link', array($this, 'get_rss_feed_link'), 20 );
     }
@@ -59,8 +59,8 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
                         <input type="text" class="regular-text code" value="<?php echo $feed_url; ?>"/>
                     </p>
                     <p>
-                        <?php _e('Please keep in mind that everyone with this feed URL might be able to view post content.', 'wmd_msreader'); ?><br/>
-                        <small><?php _e('You can reset ALL private feed URLs by clicking <a href="#" class="msreader-rss-feeds-reset-key">here</a>.', 'wmd_msreader'); ?></small>
+                        <?php _e('Please keep in mind that everyone with this feed URL might be able to view post content.', 'wmd_msreader'); ?>
+                         <small><?php _e('You can reset ALL private feed URLs by clicking <a href="#" class="msreader-rss-feeds-reset-key">here</a>.', 'wmd_msreader'); ?></small>
                     </p>
                  </div>
             </div>

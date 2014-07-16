@@ -1,7 +1,7 @@
 <?php
 $module = array(
 	'name' => __( 'Search', 'wmd_msreader' ),
-	'description' => __( 'Allows to search posts by title, author or tags', 'wmd_msreader' ),
+	'description' => __( 'Allows to search posts by title, author or tag', 'wmd_msreader' ),
 	'slug' => 'search', 
 	'class' => 'WMD_MSReader_Module_Search',
     'can_be_default' => false,
@@ -109,12 +109,18 @@ class WMD_MSReader_Module_Search extends WMD_MSReader_Modules {
                 ";
 
             $where_search = array();
-            if(isset($this->args['search_title']) && $this->args['search_title'])
-                $where_search[] = $wpdb->prepare("posts.post_title LIKE %s", '%'.$this->args['search_value'].'%');
-            if(isset($this->args['search_tag']) && $this->args['search_tag'])
-                $where_search[] = $wpdb->prepare("c.name LIKE %s", '%'.$this->args['search_value'].'%');
-            if(isset($this->args['search_author']) && $this->args['search_author'])
-                $where_search[] = $wpdb->prepare("d.display_name LIKE %s", '%'.$this->args['search_value'].'%');
+            if(isset($this->args['search_title']) && $this->args['search_title']) {
+                $where_search[] = $wpdb->prepare("posts.post_title LIKE %s", $this->args['search_value'].'%');
+                $where_search[] = $wpdb->prepare("posts.post_title LIKE %s", '% '.$this->args['search_value'].'%');
+            }
+            if(isset($this->args['search_tag']) && $this->args['search_tag']) {
+                $where_search[] = $wpdb->prepare("c.name LIKE %s", $this->args['search_value'].'%');
+                $where_search[] = $wpdb->prepare("c.name LIKE %s", '% '.$this->args['search_value'].'%');
+            }
+            if(isset($this->args['search_author']) && $this->args['search_author']) {
+                $where_search[] = $wpdb->prepare("d.display_name LIKE %s", $this->args['search_value'].'%');
+                $where_search[] = $wpdb->prepare("d.display_name LIKE %s", '% '.$this->args['search_value'].'%');
+            }
                     
             $where_search = count($where_search) > 0 ? 'AND ('.implode(' OR ', $where_search).')' : '';
             $query .= "

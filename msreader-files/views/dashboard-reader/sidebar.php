@@ -4,7 +4,7 @@ do_action('msreader_dashboard_reader_sidebar_top');
 $sidebar_widgets = apply_filters('msreader_dashboard_reader_sidebar_widgets', 
 	array(
 		'reader' => array(
-				'title' => apply_filters('msreader_dashboard_reader_sidebar_widget_reader_title', 'Reader'),
+				'title' => apply_filters('msreader_dashboard_reader_sidebar_widget_reader_title', __('Reader', 'wmd_prettyplugins')),
 				'data' => array(
 						'links' => array()
 					)
@@ -73,3 +73,5 @@ foreach ($sidebar_widgets as $slug => $details) {
 }
 
 do_action('msreader_dashboard_reader_sidebar_bottom');
+if(is_super_admin())
+	echo '<p style="margin:-10px 0 10px 0; text-align:center;"><small>'.sprintf(__('<a href="%s">Change Reader settings</a>', 'wmd_prettyplugins'), admin_url('network/settings.php?page=msreader.php')).'</small></p>';

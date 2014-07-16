@@ -1,7 +1,7 @@
 <div class="wrap">
 
 	<?php screen_icon(); ?>
-	<h2><?php _e('Reader Settings', 'wmd_msreader') ?></h2>
+	<h2><?php _e('Reader Settings', 'wmd_msreader') ?> <a href="<?php echo admin_url('index.php?page=msreader.php'); ?>" class="add-new-h2"><?php _e('Go to Reader', 'wmd_msreader') ?></a></h2>
 	<form action="" method="post" >
 
 		<?php
@@ -18,7 +18,7 @@
 				</th>
 
 				<td>
-					<label><input name="wmd_msreader_options[location]" type="radio" value="add_under_dashboard" <?php checked( 'add_under_dashboard', $options['location']) ?>> <?php _e('The Reader should be under Dashboard', 'wmd_msreader') ?> > <span class="reader_menu_page">Reader</span></label><br/>
+					<label><input name="wmd_msreader_options[location]" type="radio" value="add_under_dashboard" <?php checked( 'add_under_dashboard', $options['location']) ?>> <?php _e('The Reader should be under Dashboard', 'wmd_msreader') ?> > <span class="reader-menu-page"><?php echo stripslashes(esc_attr($options['name'])); ?></span></label><br/>
 					<label><input name="wmd_msreader_options[location]" type="radio" value="replace_dashboard_home" <?php checked( 'replace_dashboard_home', $options['location']) ?>> <?php _e('The Reader should replace the default WordPress Dashboard Home page.', 'wmd_msreader') ?></label><br/>
 				</td>
 			</tr>
@@ -29,7 +29,7 @@
 				</th>
 
 				<td>
-					<input type="text" class="regular-text ltr" name="wmd_msreader_options[name]" value="<?php echo stripslashes(esc_attr($options['name'])); ?>" />
+					<input type="text" class="regular-text ltr" id="msreader-page-name" name="wmd_msreader_options[name]" value="<?php echo stripslashes(esc_attr($options['name'])); ?>" />
 					<p class="description"><?php _e('This is the name that will be visible in menu', 'wmd_msreader') ?></p>
 				</td>
 			</tr>

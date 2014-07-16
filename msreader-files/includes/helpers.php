@@ -33,7 +33,7 @@ class WMD_MSReader_Helpers {
 		    FROM $msreader_edublogs_db_user_meta
 		    WHERE user_id = %d
 		    AND meta_key LIKE %s
-		", $user_id, 'wp%_capabilities');
+		", $user_id, $wpdb->prefix.'%_capabilities');
 		$user_roles_prepare = $wpdb->get_results($query, ARRAY_A);
 
 		$user_roles = array();
@@ -53,7 +53,7 @@ class WMD_MSReader_Helpers {
     
 	function the_select_options($array, $current, $echo = 1) {
 		if(empty($array))
-			$array = array( 1 => 'True', 0 => 'False' );
+			$array = array( 1 => __('True', 'wmd_msreader'), 0 => __('False', 'wmd_msreader') );
 
 		$return = '';
 		foreach( $array as $name => $label ) {
@@ -102,8 +102,8 @@ class WMD_MSReader_Helpers {
 
         $handle = fopen( $file, 'ab' );
         $data = date( "[Y-m-d H:i:s]" ) . $message . "\r\n";
-        fwrite($handle, $data);
-        fclose($handle);
+        @fwrite($handle, $data);
+        @fclose($handle);
     }
 }
 

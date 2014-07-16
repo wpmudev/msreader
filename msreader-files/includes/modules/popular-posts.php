@@ -29,9 +29,9 @@ class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
         $limit = $this->get_limit();
         $limit_sample = $this->get_limit($this->limit_sample,1);
 
-        $minimum_comment_count = $this->options['minimum_comment_count'];
+        $minimum_comment_count = $this->options['minimum_comment_count'] > 0 ? $this->options['minimum_comment_count']-1 : 0;
         
-    	$query = "
+    	$query = $wpdb->prepare("
             SELECT BLOG_ID, ID, post_author, post_date_gmt, post_date, post_content, post_title, comment_count
             FROM (
                 SELECT posts.BLOG_ID AS BLOG_ID, ID, post_author, post_date, post_date_gmt, post_content, post_title, comment_count
@@ -43,10 +43,10 @@ class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
                 ORDER BY post_date_gmt DESC
                 $limit_sample
             ) a
-            WHERE comment_count > $minimum_comment_count
+            WHERE comment_count > %d
             ORDER BY post_date_gmt DESC
             $limit
-        ";
+        ", $minimum_comment_count);
         $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $limit_sample, $minimum_comment_count);
         $posts = $wpdb->get_results($query);
 
@@ -56,7 +56,7 @@ class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
     function add_options_html($blank, $options) {
         return '
             <label for="wmd_msreader_options[name]">'.__( 'Minimum number of comments to the post to treat it as popular', 'wmd_msreader' ).':</label><br/>
-            <input type="number" class="small-text ltr" name="wmd_msreader_options[modules_options]['.$this->details['slug'].'][minimum_comment_count]" value="'.$options['minimum_comment_count'].'" />
+            <input type="number" min="1" class="small-text ltr" name="wmd_msreader_options[modules_options]['.$this->details['slug'].'][minimum_comment_count]" value="'.$options['minimum_comment_count'].'" />
         ';
     }
 }

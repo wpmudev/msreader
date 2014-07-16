@@ -50,8 +50,11 @@ class WMD_MSReader_Module_UserWidget extends WMD_MSReader_Modules {
 
         $user_info = array();
 
-        $user_info['main']['avatar'] = '<div class="user-avatar"><a title="Change avatar" href="'.admin_url('users.php?page=user-avatar').'"><div class="change-avatar-text">'.__( 'Change Avatar', 'wmd_msreader' ).'</div>'.get_avatar($current_user->ID, 48).'</a></div>';
-        $user_info['main']['name'] = '<div class="user-name"><h3><a title="Edit profile" href="'.admin_url('profile.php').'">'.$current_user->display_name.'</a></h3></div>';
+        if(function_exists('avatars_page_edit_blog_avatar'))
+            $user_info['main']['avatar'] = '<div class="user-avatar"><a title="'.esc_attr(__( 'Change Avatar', 'wmd_msreader' )).'" href="'.admin_url('users.php?page=user-avatar').'"><div class="change-avatar-text">'.__( 'Change Avatar', 'wmd_msreader' ).'</div>'.get_avatar($current_user->ID, 48).'</a></div>';
+        else
+            $user_info['main']['avatar'] = '<div class="user-avatar">'.get_avatar($current_user->ID, 48).'</div>';
+        $user_info['main']['name'] = '<div class="user-name"><h3><a title="'.esc_attr(__( 'Edit Profile', 'wmd_msreader' )).'" href="'.admin_url('profile.php').'">'.$current_user->display_name.'</a></h3></div>';
  
         //$user_info['main']['url'] = '<div class="user-site-url"><small><a title="Visit site" href="'.$user_site_url.'">'.str_replace('https://', '', str_replace('http://', '', $user_site_url)).'</a></small></div>';
 
@@ -83,15 +86,15 @@ class WMD_MSReader_Module_UserWidget extends WMD_MSReader_Modules {
         $user_post_count = wp_cache_get('user_post_count_'.$user_id, 'msreader_global');
 
         if(!$user_post_count) {
-            $query = "
+            $query = $wpdb->prepare("
                 SELECT count(*)
                 FROM $this->db_network_posts AS posts
                 INNER JOIN $this->db_blogs AS blogs ON blogs.blog_id = posts.BLOG_ID
                 WHERE blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
                 AND post_status = 'publish'
                 AND post_password = ''
-                AND post_author = $user_id
-            ";
+                AND post_author = %d
+            ", $user_id);
             $query = apply_filters('msreader_'.$this->details['slug'].'_user_post_count', $query, $this->args, $user_id);
             $user_post_count = $wpdb->get_var($query);
 

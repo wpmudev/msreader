@@ -30,7 +30,10 @@ class WMD_MSReader_Module_FeaturedPosts extends WMD_MSReader_Modules {
     }
 
     function add_link_to_widget($widgets) {
-        $widgets['reader']['data']['list'][] = $this->create_link_for_main_widget();
+        $featured_posts = get_site_option('msreader_featured_posts', array());
+
+        if(!empty($featured_posts) || is_super_admin())
+            $widgets['reader']['data']['list'][] = $this->create_link_for_main_widget();
         
         return $widgets;
     }

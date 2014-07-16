@@ -39,7 +39,7 @@ class MSReader_Dashboard_Walker_Comment extends Walker_Comment {
 		</div>
 		<div class="comment-tools">
 			<?php 
-			if ( current_user_can('moderate_comments') ) {
+			if ( current_user_can('moderate_comments') || current_user_can('edit_post', $comment->comment_post_ID)) {
 			?>
 				<div class="comment-moderation row-actions">
 					<span class="spinner spinner-save"></span>

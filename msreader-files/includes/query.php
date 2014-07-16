@@ -213,10 +213,7 @@ class WMD_MSReader_Query {
 				switch_to_blog($this->blog_id);
 			}
 
-			if(current_user_can('moderate_comment'))
-				$status = $this->moderate_comment_action($this->comment_moderate_data['action'], $this->comment_moderate_data['comment_id']);
-			else
-				$status = 0;
+			$status = $this->moderate_comment_action($this->comment_moderate_data['action'], $this->comment_moderate_data['comment_id'], $comment->comment_post_ID);
 			
 			if(isset($restore))
 				restore_current_blog();
@@ -259,32 +256,33 @@ class WMD_MSReader_Query {
 	}
 
 	//helper that applies moderation action on comments to replies
-	function moderate_comment_action($action, $comment_id = 0) {
+	function moderate_comment_action($action, $comment_id = 0, $post_id = 0) {
 		global $wpdb;
-		
-		$replies = $wpdb->get_results( $wpdb->prepare("SELECT comment_ID FROM $wpdb->comments WHERE comment_parent = %d", $comment_id) );
 
-		foreach ($replies as $reply) {
-			$status = $this->moderate_comment_action($action, $reply->comment_ID);
-		}
+		$status = false;
+		if(current_user_can('moderate_comment') || current_user_can('edit_post', $post_id)) {		
+			$replies = $wpdb->get_results( $wpdb->prepare("SELECT comment_ID FROM $wpdb->comments WHERE comment_parent = %d", $comment_id) );
 
-		switch ($action) {
-			case 'trash':
-				$status = wp_delete_comment($comment_id);
-				break;
-			case 'spam':
-				$status = wp_spam_comment($comment_id);
-				break;
-			case 'unapprove':
-				$status = wp_set_comment_status($comment_id, 0);
-				$status = $status ? 'approve' : 'unapprove';
-				break;
-			case 'approve':
-				$status = wp_set_comment_status($comment_id, 1);
-				$status = $status ? 'unapprove' : 'approve';
-				break;
-			default:
-				$status = false;
+			foreach ($replies as $reply) {
+				$status = $this->moderate_comment_action($action, $reply->comment_ID, $post_id);
+			}
+
+			switch ($action) {
+				case 'trash':
+					$status = wp_delete_comment($comment_id);
+					break;
+				case 'spam':
+					$status = wp_spam_comment($comment_id);
+					break;
+				case 'unapprove':
+					$status = wp_set_comment_status($comment_id, 0);
+					$status = $status ? 'approve' : 'unapprove';
+					break;
+				case 'approve':
+					$status = wp_set_comment_status($comment_id, 1);
+					$status = $status ? 'unapprove' : 'approve';
+					break;
+			}
 		}
 
 		return $status;

@@ -33,8 +33,11 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
     }
 
     function add_link_to_widget($widgets) {
-        if(!$this->helpers->is_module_enabled('user_widget')) 
-            $widgets['reader']['data']['list'][] = $this->create_link_for_main_widget('<a href="'.$this->get_module_dashboard_url(array('action' => 'manage')).'" title="'.__('Manage followed sites', 'wmd_msreader').'"><span class="msreader-widget-links-icon dashicons-admin-generic"></span></a>');
+        if(!$this->helpers->is_module_enabled('user_widget')) {
+            $link = $this->get_module_dashboard_url(array('action' => 'manage'));
+            $active = ($this->helpers->is_page_link_active($link)) ? 'class="active" ' : '';
+            $widgets['reader']['data']['list'][] = $this->create_link_for_main_widget('<a '.$active.'href="'.$this->get_module_dashboard_url(array('action' => 'manage')).'" title="'.__('Manage followed sites', 'wmd_msreader').'"><span class="msreader-widget-links-icon dashicons-admin-generic"></span></a>');
+        }
         else
             $widgets['reader']['data']['list'][] = $this->create_link_for_main_widget();
         
@@ -361,8 +364,9 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
     }
 
     function get_empty_message() {
-        $return = __( 'You are not following any sites yet.', 'wmd_msreader' );
-        if($this->helpers->is_module_enabled('recent_posts'))
+        $followed_by_user = $this->get_followed_sites();
+        $return = !$followed_by_user ? __( 'You are not following any sites yet.', 'wmd_msreader' ) : __('Nothing here yet!', 'wmd_msreader' );
+        if($this->helpers->is_module_enabled('recent_posts') && !$followed_by_user)
             $return .= '<br/> <a href="'.$this->get_module_dashboard_url(array(), 'recent_posts').'">'.__( 'Look for something interesting', 'wmd_msreader' ).'</a>';
 
         return $return;
