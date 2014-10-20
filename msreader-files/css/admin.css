@@ -450,3 +450,8 @@
 .msreader-add-comment .reply-info a {
 	text-decoration: none;
 }
+
+/*EASY BLOGGING COMPATIBILITY*/
+#wdeb-mode .msreader-rss-feeds-link, #wdeb-mode .msreader-rss-feeds-box, #wdeb-mode .msreader-follow-icon, #wdeb-mode #msreader-dashboard .current-text, #wdeb-mode .msreader-post-overlay .current-text, #wdeb-mode #msreader-dashboard .user-info {
+	display: none;
+}

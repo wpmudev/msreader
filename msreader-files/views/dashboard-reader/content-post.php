@@ -23,13 +23,13 @@
 
 	<div class="msreader-post-meta">
 		<div class="inside">
-			<?php echo get_avatar($post->post_author, 48); ?>
+			<?php echo $post->post_author_avatar_html; ?>
 
 			<div class="vertical-middle">
 				<span class="post-time" data-post_time="<?php echo $post->post_date_stamp; ?>"><?php echo $post->post_date_relative; ?></span>
 				<?php _e( 'ago', 'wmd_msreader' ); ?>
 				<?php _e( 'by', 'wmd_msreader' ); ?>
-				<?php echo apply_filters('msreader_post_author', get_the_author(), $post); ?>
+				<?php echo apply_filters('msreader_post_author', $post->post_author_display_name, $post); ?>
 				<br/>
 
 				<?php echo apply_filters('msreader_post_blog', $post->blog_details->blogname, $post); ?>

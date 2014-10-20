@@ -31,7 +31,7 @@ class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
 
         $minimum_comment_count = $this->options['minimum_comment_count'] > 0 ? $this->options['minimum_comment_count']-1 : 0;
         
-    	$query = $wpdb->prepare("
+    	$query = "
             SELECT BLOG_ID, ID, post_author, post_date_gmt, post_date, post_content, post_title, comment_count
             FROM (
                 SELECT posts.BLOG_ID AS BLOG_ID, ID, post_author, post_date, post_date_gmt, post_content, post_title, comment_count
@@ -43,10 +43,10 @@ class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
                 ORDER BY post_date_gmt DESC
                 $limit_sample
             ) a
-            WHERE comment_count > %d
+            WHERE comment_count > $minimum_comment_count
             ORDER BY post_date_gmt DESC
             $limit
-        ", $minimum_comment_count);
+        ";
         $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $limit_sample, $minimum_comment_count);
         $posts = $wpdb->get_results($query);
 

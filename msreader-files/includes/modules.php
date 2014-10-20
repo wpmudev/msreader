@@ -14,6 +14,7 @@ abstract class WMD_MSReader_Modules {
     var $cache_init;
     var $main = 0;
     var $query_hashes = array();
+    var $user;
 
     var $options;
 
@@ -60,6 +61,11 @@ abstract class WMD_MSReader_Modules {
 
 		//do the custom init by module
 		$this->init();
+
+        //enable blog post linking without switch to blog
+        if(isset($_GET['msreader_'.$this->details['slug']]) && $_GET['msreader_'.$this->details['slug']] == 'open_post' && isset($_GET['post_id']) && isset($_GET['blog_id'])) {
+            add_action('init', array( $this, "open_site_post" ), 20);
+        }
     }
     abstract function init();
 
@@ -84,10 +90,8 @@ abstract class WMD_MSReader_Modules {
     }
 
     function get_featured_media_html($post) {
-        global $wp_embed;
+        $post_content = preg_replace_callback( '|^\s*(https?://[^\s"]+)\s*$|im', array( $this, 'get_excerpt_media' ), $post->post_content );
 
-        $wp_embed->cache_oembed( $post->ID ) ;
-        $post_content = apply_filters('the_content', $post->post_content);
         $content_images_starts = explode('<img', $post_content);
 
         if(isset($content_images_starts[1]) && $content_images_starts[1]){
@@ -110,18 +114,22 @@ abstract class WMD_MSReader_Modules {
     }
 
     function get_excerpt($post) {
-        global $wp_embed;
-
         $max_sentences = 5;
         $max_paragraphs = 3;
 
-        $wp_embed->cache_oembed( $post->ID );
+        if(!shortcode_exists('gallery')) {
+        	add_shortcode( 'gallery' , create_function('', 'return false;'));
+            $fake_gallery_shortcode_added = 1;
+        }
+        $post_content = strip_shortcodes( $post->post_content );
+
+        if(isset($fake_gallery_shortcode_added))
+            remove_shortcode( 'gallery' );
 
         if(class_exists('DOMDocument')) {
             $allowed_tags = array('<strong>','<blockquote>','<em>','<p>', '<span>', '<a>');
             
-            $post_content = strip_tags($post->post_content, implode('', $allowed_tags));
-            $post_content = apply_filters('the_content', $post_content);
+            $post_content = wpautop(strip_tags($post_content, implode('', $allowed_tags)));
                        
             $dom = new DOMDocument();
             $dom->loadHTML('<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /></head><body>'.$post_content.'</body></html>');
@@ -182,8 +190,7 @@ abstract class WMD_MSReader_Modules {
         else {
             $allowed_tags = array('<strong>','<blockquote>','<em>','<p>','<a>');
 
-            $post_content = strip_tags($post->post_content, implode('', $allowed_tags));
-            $post_content = apply_filters('the_content', $post_content);
+            $post_content = strip_tags($post_content, implode('', $allowed_tags));
 
             $content_sentences = explode('.', strip_tags($post_content, implode('',$allowed_tags)));
             $content_text_length = strip_tags($post->post_content);
@@ -243,6 +250,11 @@ abstract class WMD_MSReader_Modules {
         $return = str_replace("onclick='", "data-disabled='", $return);
 
         return $return;
+    }
+
+    function get_excerpt_media($match) {
+        $return = wp_oembed_get( $match[1], array() );
+        return "\n$return\n";
     }
 
     //get limit string
@@ -347,5 +359,27 @@ abstract class WMD_MSReader_Modules {
             return true;
         else
             return false;
+    }
+
+    function get_site_post_link($blog_id, $post_id) {
+        return 
+        apply_filters(
+            'msreader_rss_feeds_post_link', 
+            esc_url(
+                add_query_arg(
+                    array(
+                        'msreader_'.$this->details['slug'] => 'open_post',
+                        'blog_id' => $blog_id,
+                        'post_id' => $post_id
+                    ), 
+                    network_site_url()
+                )
+            ), $blog_id, $post_id, network_site_url()
+        );
+    }
+
+    function open_site_post() {
+        wp_redirect(get_blog_permalink( $_GET['blog_id'], $_GET['post_id'] ));
+        exit();
     }
 } 

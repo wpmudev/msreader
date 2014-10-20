@@ -7,6 +7,7 @@ class WMD_MSReader_Query {
 	var $limit_sample = 100;
 	var $args = array();
 	var $last_date;
+	var $user = 0;
 
 	var $blog_id;
 	var $post_id;
@@ -40,9 +41,10 @@ class WMD_MSReader_Query {
 		$this->module->limit_sample = $this->limit_sample;
 		$this->module->args = $this->args;
 		$this->module->last_date = $this->last_date;
+		$this->module->user = ($this->user && is_numeric($this->user)) ? $this->user : get_current_user_id();
 
 		//check if its a query used by everybody
-		$store_user_id = !$this->module->details['global_cache'] ? get_current_user_id() : '';
+		$store_user_id = !$this->module->details['global_cache'] ? $this->module->user : '';
 		//set up secret code for query
 		$this->module->query_hashes['get_posts'] = md5($this->module->cache_init.$this->module->details['slug'].$this->page.$this->limit.http_build_query($this->args).$store_user_id);
 	}
@@ -68,7 +70,7 @@ class WMD_MSReader_Query {
 				//get some additional details for posts
 				if(is_array($posts))
 					foreach ($posts as $key => $post)
-						$posts[$key] = $this->set_additional_post_data($post);
+						$posts[$key] = $this->set_additional_post_data($post, $blog_details);
 
 				if(!$this->module->details['disable_cache'])
 					wp_cache_set('query_'.$this->module->query_hashes['get_posts'], $posts, 'msreader_global', $this->module->details['cache_time'] ? $this->module->details['cache_time'] : 900);
@@ -108,7 +110,7 @@ class WMD_MSReader_Query {
 			}
 
 			if(current_user_can('publish_posts'))
-				wp_publish_post( $this->post_id );
+				wp_update_post( array('ID' => $this->post_id, 'post_status' => 'publish') );
 
 			$status = true;
 
@@ -225,7 +227,7 @@ class WMD_MSReader_Query {
 	//Helpers
 
 	//set additional details for post
-	function set_additional_post_data($post) {
+	function set_additional_post_data($post, $blog_details = array()) {
 		$post->post_title = stripslashes($post->post_title);
 		$post->post_content = stripslashes($post->post_content);
 
@@ -242,6 +244,10 @@ class WMD_MSReader_Query {
 		//change excerpt
 		$post->post_excerpt = $this->module->get_excerpt($post);
 
+		//user details
+		$post->post_author_display_name = get_the_author_meta( 'display_name', $post->post_author );
+		$post->post_author_avatar_html = get_avatar($post->post_author, 48);
+
 		return $post;
 	}
 
@@ -249,7 +255,8 @@ class WMD_MSReader_Query {
 	function set_additional_post_data_dynamic($post) {
 		$post = apply_filters('msreader_set_additional_post_data_dynamic_before', $post);
 
-		$post->post_date_relative = human_time_diff( strtotime($post->post_date_gmt), time() );
+		$time = strtotime($post->post_date_gmt) ? $post->post_date_gmt : $post->post_date;
+		$post->post_date_relative = human_time_diff( strtotime($time), time() );
 		$post->post_date_stamp = strtotime($post->post_date_gmt);
 
 		return apply_filters('msreader_set_additional_post_data_dynamic_after', $post);

@@ -4,6 +4,12 @@ Lead developer: Maniu
 
 == Changelog ==
 
+= 1.1 =
+* Added widget to display reader content in sidebars
+* Added option for users to overwrite default Reader localization
+* Fixed problems related to media being in post excerpt
+* Other small improvements
+
 = 1.0.1 =
 * Added missing translation strings
 * Improved security

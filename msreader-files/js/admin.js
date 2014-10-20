@@ -18,9 +18,9 @@ var MSReader = function($) {
 		if(sidebar_height > ($(window).height() - $('#msreader-dashboard h2').height() - $('#wpadminbar').height()))
 			sidebar.removeClass('floating');
 		$(window).on('scroll resize', function(){
-			if($(window).width() > 850 && $(window).scrollTop() >= sidebar_position_top && sidebar_height < ($(window).height() - $('#wpadminbar').height())) {
+			if($('#wpcontent').length && $(window).width() > 850 && $(window).scrollTop() >= sidebar_position_top && sidebar_height < ($(window).height() - $('#wpadminbar').height())) {
 				//if(!sidebar.hasClass('floating')) {
-					sidebar.removeClass('floating').css('top', $('#wpadminbar').height()).css('left', sidebar.position().left + parseInt($('#wpcontent').css('margin-left'))).addClass('floating');
+					sidebar.removeClass('floating').css('top', $('#wpadminbar').height()).css('left', sidebar.position().left + parseInt($('#wpcontent').css('margin-left')) + parseInt($('#wpcontent').css('padding-left'))).addClass('floating');
 				//}
 			}
 			else

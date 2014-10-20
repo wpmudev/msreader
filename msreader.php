@@ -3,7 +3,7 @@
 Plugin Name: Reader
 Plugin URI: https://premium.wpmudev.org/project/reader/
 Description: Enabled reader that lets users browse posts inside network
-Version: 1.0.1
+Version: 1.1
 Network: false
 Text Domain: wmd_msreader
 Author: WPMU DEV
@@ -78,7 +78,8 @@ class WMD_MSReader {
 			'filter_blog_author' => $this->plugin['dir'].'includes/modules/filter-blog-author.php',
 			'search' => $this->plugin['dir'].'includes/modules/search.php',
 			'user_widget' => $this->plugin['dir'].'includes/modules/user-widget.php',
-			'rss_feeds' => $this->plugin['dir'].'includes/modules/rss-feeds.php'
+			'rss_feeds' => $this->plugin['dir'].'includes/modules/rss-feeds.php',
+			'widget_recent_posts' => $this->plugin['dir'].'includes/modules/widget-recent-posts.php'
 		));
 
 		$this->plugin['default_site_options'] = array(
@@ -140,6 +141,9 @@ class WMD_MSReader {
 			//sort modules by slug
 			ksort($this->available_modules);
 		}
+
+		//filter options after module loading in case module wants to modify it
+		$this->plugin['site_options'] = apply_filters('msreader_site_options', $this->plugin['site_options']);
     }
 
 	function init() {
@@ -186,11 +190,14 @@ class WMD_MSReader {
 					)
 						$this->main_query->$parameter = $_REQUEST[$parameter];
 
+			$default_module = apply_filters('msreader_default_module', $this->plugin['site_options']['default_module']);
+			$dynamicly_disabled_modules = apply_filters('msreader_dynamicly_disabled_modules', array());
+
 			//set up which module to display
-			if(isset($_REQUEST['module']) && array_key_exists($_REQUEST['module'], $this->modules))
+			if(isset($_REQUEST['module']) && array_key_exists($_REQUEST['module'], $this->modules) && !in_array($_REQUEST['module'], $dynamicly_disabled_modules))
 				$load_module = $_REQUEST['module'];
-			elseif($this->helpers->is_module_enabled($this->plugin['site_options']['default_module']))
-					$load_module = $this->plugin['site_options']['default_module'];
+			elseif($this->helpers->is_module_enabled($default_module))
+					$load_module = $default_module;
 			else {
 				reset($this->modules);
 				$load_module = key($this->modules);
@@ -201,30 +208,28 @@ class WMD_MSReader {
 
 		//add menu pages
 		add_action('admin_menu', array($this,'admin_page') );
-		add_action('admin_init', array($this,'replace_dashboard_fix') );
+		add_action('admin_init', array($this,'replace_dashboard_fix'), 101 );
+
+		//add profile option so user can disable reader being dashboard
+		add_action( 'profile_personal_options', array($this, 'extra_profile_fields') );
+		add_action( 'edit_user_profile', array($this, 'extra_profile_fields') );
+		add_action( 'personal_options_update', array($this, 'update_extra_profile_fields') );
+		add_action( 'edit_user_profile_update', array($this, 'update_extra_profile_fields') );
 	}
 
 
 	function activate() {
+	   	if(!is_multisite())
+	    	trigger_error(sprintf(__('Multisite Theme Manager only works in multisite configuration. You can read more about it <a href="%s" target="_blank">here</a>.', 'wmd_prettythemes'), 'http://codex.wordpress.org/Create_A_Network'),E_USER_ERROR);
+ 		else {
         //save default options
 		if($this->plugin['site_options'] == 0)
 			update_site_option('wmd_msreader_options', $this->plugin['default_site_options']);
 	}
+	}
 
 	function plugins_loaded() {
 		load_plugin_textdomain( 'wmd_msreader', false, $this->plugin['rel'].'languages/' );
-	}
-
-	function replace_dashboard_fix(){
-		global $pagenow;
-
-		//Fix for first standard menu sub item being replaced
-		$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 0;
-
-		if($page === 'msreader.php' && $pagenow == 'admin.php' || ($this->plugin['site_options']['location'] == 'replace_dashboard_home' && $pagenow == 'index.php' && !$page && !is_network_admin() && !defined('IFRAME_REQUEST'))) {
-			wp_redirect( admin_url('index.php?page=msreader.php') );
-			exit();
-		}
 	}
 
 	function post_indexer_notice() {
@@ -284,10 +289,26 @@ class WMD_MSReader {
 		}
 	}
 
+	function replace_dashboard_fix(){
+		global $pagenow;
+
+		//Fix for first standard menu sub item being replaced
+		$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 0;
+
+		$user_location_setting = get_user_meta( get_current_user_id(), 'wmd_msreader_options_location', true );
+		$location = $user_location_setting ? $user_location_setting : $this->plugin['site_options']['location'];
+
+		if($page === 'msreader.php' && $pagenow == 'admin.php' || ($location == 'replace_dashboard_home' && $pagenow == 'index.php' && !$page && !is_network_admin() && !defined('IFRAME_REQUEST'))) {
+			wp_redirect( admin_url('index.php?page=msreader.php') );
+			exit();
+		}
+	}
 
 
 	function admin_page() {
-		if($this->plugin['site_options']['location'] == 'replace_dashboard_home') {
+		$user_location_setting = get_user_meta( get_current_user_id(), 'wmd_msreader_options_location', true );
+		$location = $user_location_setting ? $user_location_setting : $this->plugin['site_options']['location'];
+		if($location == 'replace_dashboard_home') {
 			global $submenu;
 				
 			remove_submenu_page('index.php', 'index.php');
@@ -308,6 +329,30 @@ class WMD_MSReader {
 		}
 		else
 			add_dashboard_page(stripslashes($this->plugin['site_options']['name']), stripslashes($this->plugin['site_options']['name']), 'read', basename($this->plugin['main_file']), array($this,'reader_page'));
+	}
+
+	function extra_profile_fields($user) {
+	    $reader_location_options = array('' => __( 'Default', 'wmd_msreader' ), 'replace_dashboard_home' => __( 'Admin dashboard frontpage', 'wmd_msreader' ), 'add_under_dashboard' => __( 'Admin dashboard sub-menu', 'wmd_msreader' ));
+	    $current = get_user_meta( $user->ID, 'wmd_msreader_options_location', true );
+	    ?>
+		<table class="form-table">
+			<tbody>
+				<tr>
+					<th><label for="wmd_msreader_options_location"><?php echo _e( 'Reader location', 'wmd_msreader' ); ?></label></th>
+					<td>
+						<select name="wmd_msreader_options_location" id="wmd_msreader_options_location">
+							<?php $this->helpers->the_select_options($reader_location_options, $current); ?>
+						</select>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	    <?php
+	}
+
+	function update_extra_profile_fields($user_id) {
+		if ( current_user_can('edit_user',$user_id) )
+			update_user_meta($user_id, 'wmd_msreader_options_location', $_POST['wmd_msreader_options_location']);
 	}
 
 	function network_admin_page() {

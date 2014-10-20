@@ -35,7 +35,7 @@ class WMD_MSReader_Module_MyPosts extends WMD_MSReader_Modules {
     function query() {
         global $wpdb;
         
-        $current_user_id = get_current_user_id();
+        $current_user_id = $this->user;
         $limit = $this->get_limit();
 
         //get sites of current user

@@ -2,7 +2,7 @@
 	<button class="left dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Show previous post', 'wmd_msreader' ); ?></span></button>
 	<button class="right dashicons dashicons-no"><span class="screen-reader-text"><?php _e( 'Show next post', 'wmd_msreader' ); ?></span></button>
 	<div class="links">
-		<a href="<?php echo get_permalink($post->ID); ?>"><?php _e( 'View Orginal', 'wmd_msreader' ); ?></a><?php
+		<a href="<?php echo get_permalink($post->ID); ?>"><?php _e( 'View Original', 'wmd_msreader' ); ?></a><?php
 		if(current_user_can( 'edit_others_posts', $post->ID ) || ($post->post_author == $current_user_id))
 			 edit_post_link(__( 'Edit', 'wmd_msreader' ), '', '');
 		if($post->post_status != 'publish' && current_user_can( 'publish_posts', $post->ID ))

@@ -16,9 +16,6 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
             add_filter('msreader_query_limit_default', array( $this, "msreader_query_limit_default"));
             add_action('init', array( $this, "display_rss" ), 15);
         }
-        elseif(isset($_GET['msreader_'.$this->details['slug']]) && $_GET['msreader_'.$this->details['slug']] == 'open_post' && isset($_GET['post_id']) && isset($_GET['blog_id'])) {
-            add_action('init', array( $this, "open_site_post" ), 20);
-        }
 
         add_filter('msreader_dashboard_page_title', array( $this, "add_rss_icon" ), 50, 1 );
         add_action( 'admin_head', array( $this, "add_css_js" ) );
@@ -240,28 +237,6 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
         exit();
     }
 
-    function get_site_post_link($blog_id, $post_id) {
-        return 
-        apply_filters(
-            'msreader_rss_feeds_post_link', 
-            esc_url(
-                add_query_arg(
-                    array(
-                        'msreader_'.$this->details['slug'] => 'open_post',
-                        'blog_id' => $blog_id,
-                        'post_id' => $post_id
-                    ), 
-                    network_site_url()
-                )
-            ), $blog_id, $post_id, network_site_url()
-        );
-    }
-
-    function open_site_post() {
-        wp_redirect(get_blog_permalink( $_GET['blog_id'], $_GET['post_id'] ));
-        exit();
-    }
-
     function get_rss_feed_link($generate = 0, $regenerate = 0, $module = 0) {
         if(defined('DOING_AJAX'))
             error_reporting(0);
@@ -283,7 +258,7 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
             elseif(isset($msreader_main_query->module->args) && count($msreader_main_query->module->args))
                 $module_args = $msreader_main_query->module->args;
 
-        $user_id = get_current_user_id();
+        $user_id = $this->user;
 
         $user_feed_key = get_user_meta($user_id, 'msreader_rss_feeds_key', true);
         if((empty($user_feed_key) && $generate) || $regenerate) {

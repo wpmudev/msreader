@@ -43,8 +43,9 @@ foreach ($sidebar_widgets as $slug => $details) {
 						$link_query = isset($link_query['query']) ? $link_query['query'] : '';
 						$link_args = array();
 						parse_str($link_query, $link_args);
+						$default_module = apply_filters('msreader_default_module', $this->plugin['site_options']['default_module']);
 
-						$active = ($this->helpers->is_page_link_active($value['link']) || ($link_args['module'] == $this->plugin['site_options']['default_module'] && !isset($_GET['module']))) ? ' class="active"' : '';
+						$active = ($this->helpers->is_page_link_active($value['link']) || ($link_args['module'] == $default_module && !isset($_GET['module']))) ? ' class="active"' : '';
 						echo '<li'.$active.'>'.(isset($value['before']) ? $value['before'] : '').'<a href="'.$value['link'].'">'.$value['title'].'</a>'.(isset($value['after']) ? $value['after'] : '').'</li>';
 					}
 					else

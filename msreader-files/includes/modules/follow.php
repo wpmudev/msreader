@@ -7,7 +7,8 @@ $module = array(
 	'class' => 'WMD_MSReader_Module_Follow',
     'default_options' => array(
         'follow_by_default' => 1,
-        'button_visibility' => 'both'
+        'button_visibility' => 'both',
+        'button_visibility_for' => 'loggedin'
     )
 );
 
@@ -242,7 +243,7 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
                         echo 'follow';
                 }
 
-                $current_user_id = get_current_user_id();
+                $current_user_id = $this->user;
                 update_user_option($current_user_id, 'msreader_follow', $user_follow_data, true);
                 $this->increase_cache_init();
             }
@@ -257,7 +258,27 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
     }
 
     function follow_link() {
-        if(!is_network_admin() && ($this->options['button_visibility'] == 'both' || ($this->options['button_visibility'] == 'front' && !is_admin()) || ($this->options['button_visibility'] == 'back' && is_admin()))) {
+        if(
+            !is_network_admin() && 
+            (
+                $this->options['button_visibility_for'] == 'both' || 
+                (
+                    $this->options['button_visibility_for'] == 'loggedin' && 
+                    is_user_logged_in()
+                )
+            ) &&            
+            (
+                $this->options['button_visibility'] == 'both' || 
+                (
+                    $this->options['button_visibility'] == 'front' && 
+                    !is_admin()
+                ) || 
+                (
+                    $this->options['button_visibility'] == 'back' && 
+                    is_admin()
+                )
+            )
+        ) {
             $current_blog_id = get_current_blog_id();
 
             if($this->is_site_indexable($current_blog_id)) {
@@ -373,8 +394,8 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
     }
 
     function get_followed_sites($check = 1) {
-        if(is_user_logged_in()) {
-            $user_follow_data = get_user_option('msreader_follow');
+        if($this->user) {
+            $user_follow_data = get_user_option('msreader_follow', $this->user);
             $user_follow_data = !$user_follow_data ? array('followed' => array(), 'unfollowed' => array()) : $user_follow_data;
             $followed_by_default = explode(',', str_replace(' ', '', $this->options['follow_by_default']));
             $followed_by_user = array_diff (array_merge($user_follow_data['followed'], $followed_by_default), $user_follow_data['unfollowed']);
@@ -395,13 +416,21 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
     }
 
     function add_options_html($blank, $options) {
-        $button_visibility_options = array('both' => __( 'Show the button on frontend and backend area', 'wmd_msreader' ), 'front' => __( 'Show the button only on frontend', 'wmd_msreader' ), 'back' => __( 'Show the button only on backend area', 'wmd_msreader' ));
+        $button_visibility_on_options = array('both' => __( 'Frontend and backend area', 'wmd_msreader' ), 'front' => __( 'Frontend area', 'wmd_msreader' ), 'back' => __( 'Backend area', 'wmd_msreader' ));
+        $button_visibility_for_options = array('both' => __( 'Logged in and logged out users', 'wmd_msreader' ), 'loggedin' => __( 'Logged in users', 'wmd_msreader' ));
+
         return '
-            <label for="wmd_msreader_options[name]">'.__( 'IDs of sites followed by default (Comma separated)', 'wmd_msreader' ).':</label><br/>
-            <input type="text" class="smallt-ext ltr" name="wmd_msreader_options[modules_options]['.$this->details['slug'].'][follow_by_default]" value="'.$options['follow_by_default'].'" /><br/>
-            <label for="wmd_msreader_options[name]">'.__( 'Display follow button on', 'wmd_msreader' ).':</label><br/>
-            <select name="wmd_msreader_options[modules_options]['.$this->details['slug'].'][button_visibility]">
-            '.$this->helpers->the_select_options($button_visibility_options, $options['button_visibility'], 0).'
+            <label for="wmd_msreader_options_'.$this->details['slug'].'_follow_by_default">'.__( 'IDs of sites followed by default (Comma separated)', 'wmd_msreader' ).':<br/>
+            <input type="text" class="smallt-ext ltr" name="wmd_msreader_options[modules_options]['.$this->details['slug'].'][follow_by_default]" value="'.$options['follow_by_default'].'"  id="wmd_msreader_options_'.$this->details['slug'].'_follow_by_default"/></label>
+            <br/>
+            <label for="wmd_msreader_options_'.$this->details['slug'].'_button_visibility">'.__( 'Display follow button on', 'wmd_msreader' ).':</label><br/>
+            <select name="wmd_msreader_options[modules_options]['.$this->details['slug'].'][button_visibility]" id="wmd_msreader_options_'.$this->details['slug'].'_button_visibility">
+            '.$this->helpers->the_select_options($button_visibility_on_options, $options['button_visibility'], 0).'
+            </select>
+            <br/>
+            <label for="wmd_msreader_options_'.$this->details['slug'].'_button_visibility_for">'.__( 'Display follow button for', 'wmd_msreader' ).':</label><br/>
+            <select name="wmd_msreader_options[modules_options]['.$this->details['slug'].'][button_visibility_for]"  id="wmd_msreader_options_'.$this->details['slug'].'_button_visibility_for">
+            '.$this->helpers->the_select_options($button_visibility_for_options, $options['button_visibility_for'], 0).'
             </select>
         ';
     }

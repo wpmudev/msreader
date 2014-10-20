@@ -33,7 +33,7 @@ class WMD_MSReader_Helpers {
 		    FROM $msreader_edublogs_db_user_meta
 		    WHERE user_id = %d
 		    AND meta_key LIKE %s
-		", $user_id, $wpdb->prefix.'%_capabilities');
+		", $user_id, 'wp%_capabilities');
 		$user_roles_prepare = $wpdb->get_results($query, ARRAY_A);
 
 		$user_roles = array();
