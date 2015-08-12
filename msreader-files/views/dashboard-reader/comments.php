@@ -19,7 +19,7 @@ class MSReader_Dashboard_Walker_Comment extends Walker_Comment {
 
 		$tag = ( 'div' === $args['style'] ) ? 'div' : 'li'; ?>
 <<?php echo $tag; ?> id="comment-<?php comment_ID(); ?>" class="comment<?php echo empty( $args['has_children'] ) ? '' : ' parent'; ?>">
-	<article data-comment_id="<?php comment_ID(); ?>" id="comment-<?php comment_ID(); ?>" class="comment-body<?php echo ('0' == $comment->comment_approved) ? ' unapproved' : ' approved'; ?>">
+	<article data-comment_id="<?php comment_ID(); ?>" id="comment-<?php comment_ID(); ?>" class="comment-body<?php echo ($comment->comment_approved == '0') ? ' unapproved' : ' approved'; echo ($comment->comment_type == 'private') ? ' private' : ' public'; ?>">
 		<footer class="comment-meta">
 
 			<div class="comment-author vcard">
@@ -43,13 +43,19 @@ class MSReader_Dashboard_Walker_Comment extends Walker_Comment {
 			?>
 				<div class="comment-moderation row-actions">
 					<span class="spinner spinner-save"></span>
-					<?php if('0' == $comment->comment_approved ) { ?>
+					<?php if('private' == $comment->comment_type ) { ?>
+						<span class="private"><?php _e( 'Private Comment', 'wmd_msreader' ); ?></a></span>
+					<?php } elseif('0' == $comment->comment_approved ) { ?>
 						<span class="approve"><a class="comment-approve" data-action="approve" href="#"><?php _e( 'Approve', 'wmd_msreader' ); ?></a></span>
 					<?php } else { ?>
 						<span class="unapprove"><a class="comment-unapprove" data-action="unapprove" href="#"><?php _e( 'Unapprove', 'wmd_msreader' ); ?></a></span>
 					<?php } ?>
+					<?php if('private' != $comment->comment_type ) { ?>
 					 | <span class="trash"><a class="comment-spam" href="#" data-action="spam"><?php _e( 'Spam', 'wmd_msreader' ); ?></a></span> 
 					 | <span class="trash"><a class="comment-trash" href="#" data-action="trash"><?php _e( 'Trash', 'wmd_msreader' ); ?></a>
+					<?php } else { ?>
+					 | <span class="delete"><a class="comment-trash" href="#" data-action="trash"><?php _e( 'Delete permanently', 'wmd_msreader' ); ?></a>
+					<?php } ?>
 				</div>
 			<?php 
 			}

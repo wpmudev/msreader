@@ -137,6 +137,7 @@ var MSReader = function($) {
 			var comment = $(this).parents('.comment-body');
 			var form = $(this).parents('.msreader-post').find('.msreader-add-comment');
 			var reply_info = form.find('.reply-info');
+			var private_comment_option = form.find('#comment-private-option');
 			var comment_offset;
 
 			$('.msreader-post-overlay .comments .comment-reply').removeClass('button-primary');
@@ -157,6 +158,12 @@ var MSReader = function($) {
 				$(".msreader-comments").animate({ scrollTop: comment_offset }, 300);
 			}
 
+			//check if we need to force mark as private
+			if(comment.hasClass('private')) {
+				private_comment_option.find('#comment-private').prop('checked', true).prop('disabled', true);
+				private_comment_option.addClass('disabled');
+			}
+
 			//fade out old text
 			if(reply_info.css('display') == 'inline')
 				reply_info.fadeOut('fast');
@@ -170,6 +177,11 @@ var MSReader = function($) {
 			event.preventDefault;
 
 			var window_width = get_window_width();
+			var form = $(this).parents('.msreader-add-comment');
+			var private_comment_option = form.find('#comment-private-option');
+
+			private_comment_option.find('#comment-private').prop('checked', false).prop('disabled', false);
+			private_comment_option.removeClass('disabled');
 
 			msreader_main_query.comment_reply_to = 0;
 			$(this).parents('.msreader-post-overlay').find('.comments .comment-reply').removeClass('button-primary');
@@ -214,6 +226,7 @@ var MSReader = function($) {
 					comment: form.find('#comment').val(),
 					comment_parent: msreader_main_query.comment_reply_to,
 					level: level,
+					private: form.find('#comment-private').prop('checked') == true ? 1 : '',
 				};
 				args = {
 					source: 'msreader',
@@ -360,7 +373,7 @@ var MSReader = function($) {
 								else {
 									comment_holder.find('.comment-'+action).attr('data-action', response);
 									comment_holder.find('.comment-'+action).parent().attr('class', response);
-									comment_holder.find('.comment-'+action).text(response);
+									comment_holder.find('.comment-'+action).text(msreader_translation[response]);
 									comment_holder.find('.comment-'+action).attr('class', 'comment-'+response);
 
 									if(response == 'approve') {
@@ -375,13 +388,48 @@ var MSReader = function($) {
 									}
 								}						
 							}
+							else if (window.console)
+								console.log(response);
 						});
 					}
 					else
 						button.parents('.comment-moderation').removeClass('visible');
 				});
 			}
-		})
+		});
+	
+		//handle general popup opening
+		$('#wpbody-content').on('click', '.msreader-show', function(event) {
+			event.preventDefault();
+
+			var button = $(this);
+
+			if(button.attr('href') != '#')
+				$(button.attr('href')).show();
+			else {
+				var popup = $(this).parents('.msreader-popup-container').find('.msreader-popup').removeClass('msreader-popup-bottom').removeClass('msreader-popup-left');
+				var overlay_post = button.parents('.msreader-post-holder');
+				var popup_container = button.parents('.msreader-popup-container');
+				if(overlay_post.length && ((popup_container.position().left + popup_container.width()-15) < popup.width()) ) {
+					popup.addClass('msreader-popup-left');
+				}
+				else if((button.offset().top- $(window).scrollTop()) < (popup.height() + 200))
+					popup.addClass('msreader-popup-bottom');
+
+				popup.show();
+			}
+		});
+		//handle general popup closing
+		$('#wpbody-content').on('click', '.msreader-hide', function(event) {
+			event.preventDefault();
+			
+			var button = $(this);
+
+			if(button.attr('href') != '#')
+				$(button.attr('href')).hide();
+			else
+				$(this).parents('.msreader-popup').hide();
+		});
 
 	});
 
@@ -499,7 +547,7 @@ var MSReader = function($) {
 		if(typeof(selector)==='undefined')
 			var selector = $( ".msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"']" );
 		if(fade)
-			selector.fadeTo(200, 0.5);
+			selector.find('.fade-bg').show();
 		else
 			selector.hide();
 
@@ -513,7 +561,7 @@ var MSReader = function($) {
 		if(typeof(selector)==='undefined')
 			var selector = $( ".msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"']" );
 		if(fade)
-			selector.fadeTo(200, 1);
+			selector.find('.fade-bg').hide();
 		else
 			selector.show();
 
@@ -534,11 +582,12 @@ var MSReader = function($) {
 			};
 
 			$.post(ajaxurl, args, function(response) {
-				$(".msreader-post-header-navigation .spinner, .msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"'] .spinner").fadeOut(200, function() {$(this).hide()});;
+				$(".msreader-post-header-navigation .spinner, .msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"'] .spinner").fadeOut(200, function() {$(this).hide()});
 
 				if(response && response != 0) {
 					$( ".msreader-post-overlay .msreader-post-header-navigation .links .publish, .msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"'] .msreader-post-actions .publish" ).text(response).prop( "disabled", true );
 
+					$( ".msreader-post-overlay" ).find('#comment-private-option').removeClass('disabled').find('input').prop('disabled', false).prop('checked', false);
 					remove_post_from_list(blog_id, post_id);
 				}
 			});
@@ -554,6 +603,20 @@ var MSReader = function($) {
 			width = window_width;
 
 		return width;
+	}
+
+	this.refresh_sidebar = function() {
+		args = {
+			source: 'msreader',
+			action: 'dashboard_get_reader_sidebar_ajax',
+			current_url: window.location.href
+		};
+
+		$.post(ajaxurl, args, function(response) {
+			if(response && response != 0) {
+				$('.msreader-sidebar').html(response);
+			}
+		});
 	}
 
 	return this;

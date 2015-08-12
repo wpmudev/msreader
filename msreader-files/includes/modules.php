@@ -19,25 +19,34 @@ abstract class WMD_MSReader_Modules {
     var $options;
 
     var $message;
-    var $message_type;
+    var $message_type = true;
 
     var $helpers;
 
-	function __construct($options = array()) {
+	function __construct($options = array(), $slug) {
 		global $msreader_available_modules, $wpdb, $msreader_helpers;
 
 		//set module details
         end($msreader_available_modules);
-		$this->details = $msreader_available_modules[key($msreader_available_modules)];
+		$this->details = $msreader_available_modules[$slug];
 
         //set options for module
         $this->options = $options;
 
+        $this->message = isset($_GET['msg']) ? urldecode($_GET['msg']) : $this->message;
+        $this->message_type = isset($_GET['msg_type']) ? $_GET['msg_type'] : $this->message_type;
+
+        //fix translation issues
+        $this->details['name'] = __($this->details['name'], 'wmd_msreader');
 		//sets default unnecessary data
 		if(!isset($this->details['page_title']))
 			$this->details['page_title'] = $this->details['name'];
+        else
+            $this->details['page_title'] = __($this->details['page_title'], 'wmd_msreader');
 		if(!isset($this->details['menu_title']))
 			$this->details['menu_title'] = $this->details['name'];
+        else
+            $this->details['menu_title'] = __($this->details['menu_title'], 'wmd_msreader');
 
         if(!isset($this->details['can_be_default']))
             $this->details['can_be_default'] = true;
@@ -46,7 +55,11 @@ abstract class WMD_MSReader_Modules {
         if(!isset($this->details['disable_cache']))
             $this->details['disable_cache'] = false;
         if(!isset($this->details['cache_time']))
-            $this->details['cache_time'] = '';
+            $this->details['cache_time'] = 900;
+        if(!isset($this->details['type']))
+            $this->details['default'] = 'other';
+        if(!is_array($this->details['type']))
+            $this->details['type'] = array($this->details['type']);
 
         //set DB details
         $this->db_network_posts = apply_filters('msreader_db_network_posts', $wpdb->base_prefix.'network_posts');
@@ -70,7 +83,7 @@ abstract class WMD_MSReader_Modules {
     abstract function init();
 
     function load_module() {
-        $this->cache_init = $this->details['global_cache'] ? get_site_option('msreader_cache_init_'.$this->details['slug'], 1) : get_user_option('msreader_cache_init_'.$this->details['slug']);
+        $this->cache_init = $this->details['global_cache'] ? get_site_option('msreader_cache_init_'.$this->details['slug'], 1) : get_user_option('msreader_cache_init_'.$this->details['slug'], $this->get_user());
         $this->cache_init = $this->cache_init == false ? 1 : $this->cache_init;
     }
 
@@ -271,6 +284,25 @@ abstract class WMD_MSReader_Modules {
             return 'LIMIT 0,10';
     }
 
+    //get limit string
+    function get_public() {
+        $public = $this->helpers->is_public_only();
+
+        if($public) {
+            $allowed_sites = apply_filters('msreader_filter_blog_public_query_allowed_sites', 'public', $this->args, $this->details['slug']);
+            
+            if(is_array($allowed_sites) && count($allowed_sites) > 0 && array_filter($allowed_sites, 'is_int'))
+                $query_part = '(blogs.public = 1 OR posts.BLOG_ID IN('.implode(',', array_slice(array_unique($allowed_sites), 0, 50)).')) AND';
+            elseif($allowed_sites == 'all')
+                $query_part = '';
+            else
+                $query_part = 'blogs.public = 1 AND';
+        }
+        else
+            $query_part = '';
+
+        return apply_filters('msreader_filter_blog_public_query_part', $query_part, $this->args, $this->details['slug']);
+    }
 
     //get limit string
     function get_module_dashboard_url($args = array(), $module_slug = '') {
@@ -282,7 +314,7 @@ abstract class WMD_MSReader_Modules {
             $blog_id = (is_user_member_of_blog() || is_super_admin()) ? get_current_blog_id() : get_user_meta(get_current_user_id(), 'primary_blog', true);
             
             $url = get_admin_url($blog_id, 'index.php?page=msreader.php&module='.$module_slug);
-            if(is_array($args) && count($args) > 0)
+            if($args)
                 $url = add_query_arg(array('args' => $args), $url);
         }
         else
@@ -295,10 +327,10 @@ abstract class WMD_MSReader_Modules {
     }
 
     //easily adds link to main widget
-    function create_link_for_main_widget($title_after = '') {
+    function create_link_for_main_widget($title_after = '', $args = false) {
 		$link = array(
 				'title' => $this->details['menu_title'].$title_after, 
-				'link' => add_query_arg(array('module' => $this->details['slug'], 'args' => false))
+				'link' => add_query_arg(array('module' => $this->details['slug'], 'args' => $args), admin_url('index.php?page=msreader.php'))
 			);
 
 		return $link;
@@ -308,7 +340,7 @@ abstract class WMD_MSReader_Modules {
     function create_list_widget($links, $widget_details = array()) {
     	foreach ($links as $position => $data) {
     		if(isset($data['args']))
-    			$data['link'] = add_query_arg(array('module' => $this->details['slug'], 'args' => $data['args']));
+    			$data['link'] = add_query_arg(array('module' => $this->details['slug'], 'args' => $data['args']), admin_url('index.php?page=msreader.php'));
             if(isset($data['link']) && !$data['link'])
                 unset($data['link']);
 
@@ -376,6 +408,13 @@ abstract class WMD_MSReader_Modules {
                 )
             ), $blog_id, $post_id, network_site_url()
         );
+    }
+
+    function get_user() {
+        if(!isset($this->user))
+            $this->user = get_current_user_id();
+
+        return $this->user;
     }
 
     function open_site_post() {

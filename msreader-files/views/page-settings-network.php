@@ -2,6 +2,7 @@
 
 	<?php screen_icon(); ?>
 	<h2><?php _e('Reader Settings', 'wmd_msreader') ?> <a href="<?php echo admin_url('index.php?page=msreader.php'); ?>" class="add-new-h2"><?php _e('Go to Reader', 'wmd_msreader') ?></a></h2>
+	<p><?php _e('Read, discover, follow and moderate posts in the dashboard of all sites across your network.', 'wmd_msreader') ?></p>
 	<form action="" method="post" >
 
 		<?php
@@ -43,7 +44,7 @@
 					<?php 
 					foreach ($this->available_modules as $slug => $module) {
 						$current = $this->helpers->is_module_enabled($module['slug'], $this->plugin['site_options']) ? 'true' : 0;
-						echo '<div class="msreader-control-module"><label><input name="wmd_msreader_options[modules]['.$module['slug'].']" data-module="'.$module['slug'].'" class="wmd_msreader_options_modules" type="checkbox" value="true" '.checked( 'true', $current, 0).'> <strong>'.$module['name'].'</strong> - '.$module['description'].'.</label>';
+						echo '<div class="msreader-control-module"><label><input name="wmd_msreader_options[modules]['.$module['slug'].']" data-module="'.$module['slug'].'" class="wmd_msreader_options_modules" type="checkbox" value="true" '.checked( 'true', $current, 0).'> <strong>'.__($module['name'], 'wmd_msreader').'</strong> - '.__($module['description'], 'wmd_msreader').'.</label>';
 						$module_options = isset($this->plugin['site_options']['modules_options'][$slug]) ? $this->plugin['site_options']['modules_options'][$slug] : array();
 						$module_options = apply_filters('msreader_module_options_'.$module['slug'], '', $module_options);
 						if($module_options && count($this->plugin['site_options']['modules_options'][$slug])) {
@@ -57,6 +58,18 @@
 					?>
 				</td>
 			</tr>
+
+			<tr valign="top">
+				<th scope="row">
+					<label for="wmd_msreader_options[posts_from]"><?php _e('Should posts from private sites be included in reader?', 'wmd_msreader') ?></label>
+				</th>
+
+				<td>
+					<label><input name="wmd_msreader_options[posts_from]" type="radio" value="all" <?php checked( 'all', $options['posts_from']) ?>> <?php _e('Yes, include posts from all sites', 'wmd_msreader') ?></label><br/>
+					<label><input name="wmd_msreader_options[posts_from]" type="radio" value="public" <?php checked( 'public', $options['posts_from']) ?>> <?php _e('No, include posts from public sites only (where "Search Engine Visibility" is enabled)', 'wmd_msreader') ?></label><br/>
+				</td>
+			</tr>
+
 			<tr valign="top">
 				<th scope="row">
 					<label for="wmd_msreader_options[location]"><?php _e('Which feature is default on The Reader page?', 'wmd_msreader') ?></label>
@@ -71,7 +84,7 @@
 								continue;
 
 							$display = !$this->helpers->is_module_enabled($module['slug']) ? ' style="display: none;"' : '';
-							echo '<option value="'.$module['slug'].'" data-module="'.$module['slug'].'" '.$display.selected( $options['default_module'], $module['slug'], false ).'>'.$module['name'].'</option>';
+							echo '<option value="'.$module['slug'].'" data-module="'.$module['slug'].'" '.$display.selected( $options['default_module'], $module['slug'], false ).'>'.__($module['name'], 'wmd_msreader').'</option>';
 						}
 						echo '</select>';
 					}

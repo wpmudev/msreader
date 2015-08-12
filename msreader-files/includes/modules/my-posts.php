@@ -3,7 +3,8 @@ $module = array(
 	'name' => __( 'My Posts', 'wmd_msreader' ),
 	'description' => __( 'Displays current users posts', 'wmd_msreader' ),
 	'slug' => 'my_posts', 
-	'class' => 'WMD_MSReader_Module_MyPosts'
+	'class' => 'WMD_MSReader_Module_MyPosts',
+    'type' => 'query'
 );
 
 class WMD_MSReader_Module_MyPosts extends WMD_MSReader_Modules {
@@ -20,14 +21,14 @@ class WMD_MSReader_Module_MyPosts extends WMD_MSReader_Modules {
 
         $current_user_id = get_current_user_id();
         $user_info['main'] = array_slice($user_info['main'], 0, 1, true) +
-        array("my_posts" => '<div class="user-posts'.$active.'"><small><a title="View your posts" href="'.$link.'">'.__( 'My Posts', 'wmd_msreader' ).'</a></small></div>') +
+        array("my_posts" => '<div class="user-posts'.$active.'"><small><a title="'.__( 'View your posts', 'wmd_msreader' ).'" href="'.$link.'">'.__( 'My Posts', 'wmd_msreader' ).'</a></small></div>') +
         array_slice($user_info['main'], 1, count($user_info['main'])-1, true);
 
         return $user_info;
     }
 
     function add_link_to_widget($widgets) {
-		$widgets['reader']['data']['list'][] = $this->create_link_for_main_widget();
+		$widgets['reader']['data']['list'][$this->details['slug']] = $this->create_link_for_main_widget();
 
     	return $widgets;
     }
@@ -35,7 +36,7 @@ class WMD_MSReader_Module_MyPosts extends WMD_MSReader_Modules {
     function query() {
         global $wpdb;
         
-        $current_user_id = $this->user;
+        $current_user_id = $this->get_user();
         $limit = $this->get_limit();
 
         //get sites of current user

@@ -13,13 +13,28 @@ class WMD_MSReader_Helpers {
 		return (isset($this->plugin['site_options']['modules']) && is_array($options['modules']) && array_key_exists($slug, $options['modules'])) || in_array($slug, apply_filters('msreader_activate_modules', array())) ? true : false;
 	}
 
+	//is public only
+	function is_public_only() {
+		return $this->plugin['site_options']['posts_from'] == 'public' ? true : false;
+	}
+
+	function get_default_module() {
+		return apply_filters('msreader_default_module', $this->plugin['site_options']['default_module']);
+	}
+
 	//general
 	function is_page_link_active($link, $soft = 0) {
 		$link_query = parse_url($link);
 		$link_query = isset($link_query['query']) ? $link_query['query'] : '';
-		if($soft && strpos($_SERVER['QUERY_STRING'], $link_query) !== false)
+		if(isset($_POST['current_url'])) {
+			$current_query = parse_url($_POST['current_url']);
+			$current_query = isset($current_query['query']) ? $current_query['query'] : '';
+		}
+		else
+			$current_query = $_SERVER['QUERY_STRING'];
+		if($soft && strpos($current_query, $link_query) !== false)
 			return true;
-		elseif($_SERVER['QUERY_STRING'] == $link_query)
+		elseif($current_query == $link_query)
 			return true;
 		else
 			return false;
@@ -49,6 +64,10 @@ class WMD_MSReader_Helpers {
 		};
 
 		return $user_roles;
+	}
+
+	function array_sort_by_sub_title($a, $b) {
+		return strcmp($a['title'], $b['title']);
 	}
     
 	function the_select_options($array, $current, $echo = 1) {

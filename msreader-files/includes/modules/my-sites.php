@@ -3,32 +3,40 @@ $module = array(
 	'name' => __( 'My Sites', 'wmd_msreader' ),
 	'description' => __( 'Displays posts from current users sites', 'wmd_msreader' ),
 	'slug' => 'my_sites', 
-	'class' => 'WMD_MSReader_Module_MySites'
+	'class' => 'WMD_MSReader_Module_MySites',
+    'type' => 'query'
 );
 
 class WMD_MSReader_Module_MySites extends WMD_MSReader_Modules {
 	function init() {
 		add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_link_to_widget'), 50 );
+        add_filter( 'msreader_filter_blog_public_query_allowed_sites', array($this,'filter_blog_public_query_allowed_sites'), 10, 3 );
     }
 
     function add_link_to_widget($widgets) {
-		$widgets['reader']['data']['list'][] = $this->create_link_for_main_widget();
+		$widgets['reader']['data']['list'][$this->details['slug']] = $this->create_link_for_main_widget();
 
     	return $widgets;
+    }
+
+    function get_user_sites_ids() {
+        $current_user_id = $this->get_user();
+
+        $user_sites = get_blogs_of_user( $current_user_id );
+        $user_sites_ids = array();
+        foreach ($user_sites as $user_site)
+            $user_sites_ids[] = $user_site->userblog_id;
+
+        return $user_sites_ids;
     }
 
     function query() {
         global $wpdb;
         
-        $current_user_id = $this->user;
         $limit = $this->get_limit();
 
         //get sites of current user
-        $user_sites = get_blogs_of_user( $current_user_id );
-        $user_sites_ids = array();
-        foreach ($user_sites as $user_site)
-            $user_sites_ids[] = $user_site->userblog_id;
-        $user_sites_ids = implode(',', $user_sites_ids);
+        $user_sites_ids = implode(',', $this->get_user_sites_ids());
 
         if($user_sites_ids) {
         	$query = "
@@ -49,5 +57,18 @@ class WMD_MSReader_Module_MySites extends WMD_MSReader_Modules {
             $posts = array();
 
     	return $posts;
+    }
+    function filter_blog_public_query_allowed_sites($filter, $args, $module) {
+        if($this->helpers->is_public_only()) {
+            $user_sites_ids = $this->get_user_sites_ids();
+
+            if($module == 'filter_blog_author' && isset($args['blog_id']) && is_numeric($args['blog_id']) && in_array($args['blog_id'], $class_blogs))
+                $filter = 'all';
+
+            if(($module == 'filter_blog_author' && isset($args['author_id']) && is_numeric($args['author_id'])) || $module == 'follow')
+                $filter = (is_array($filter)) ? array_merge($filter, $user_sites_ids) : $user_sites_ids;
+        }
+
+        return $filter;
     }
 }

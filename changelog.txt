@@ -4,6 +4,13 @@ Lead developer: Maniu
 
 == Changelog ==
 
+= 1.2 =
+* Added lists to easily group followed sites
+* Added user's private sites to post lists even when blocked
+* Improved cache system
+* Fixed comment moderation issue
+* Fixed translation issues
+
 = 1.1 =
 * Added widget to display reader content in sidebars
 * Added option for users to overwrite default Reader localization

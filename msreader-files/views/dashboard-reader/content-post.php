@@ -1,5 +1,6 @@
 <div class="postbox <?php echo implode(' ', apply_filters('msreader_post_class', array('msreader-post'), $post)); ?>" data-blog_id="<?php echo $post->BLOG_ID ?>" data-post_id="<?php echo get_the_ID(); ?>">
 	<div class="post-spinner spinner spinner-save"></div>
+	<div class="fade-bg"></div>
 
 	<div class="msreader-post-content">
 		<div class="inside">
@@ -32,7 +33,7 @@
 				<?php echo apply_filters('msreader_post_author', $post->post_author_display_name, $post); ?>
 				<br/>
 
-				<?php echo apply_filters('msreader_post_blog', $post->blog_details->blogname, $post); ?>
+				<?php echo apply_filters('msreader_post_blog', wp_trim_words($post->blog_details->blogname, 10), $post); ?>
 			</div>
 		</div>
 	</div>

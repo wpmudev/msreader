@@ -4,7 +4,8 @@ $module = array(
 	'description' => __( 'Allows usage of WordPress sidebar widget that displays latest posts', 'wmd_msreader' ),
 	'slug' => 'widget_recent_posts', 
 	'class' => 'WMD_MSReader_Module_WidgetRecentPosts',
-    'can_be_default' => false
+    'can_be_default' => false,
+    'type' => 'wp-widget'
 );
 
 class WMD_MSReader_Module_WidgetRecentPosts extends WMD_MSReader_Modules {
@@ -47,9 +48,18 @@ class WMD_MSReader_Module_WidgetRecentPosts extends WMD_MSReader_Modules {
 
         $query = new WMD_MSReader_Query();
 
+        $arg_module = explode('|', $instance['module']);
+        if(isset($arg_module[1])) {
+            $instance['module'] = $arg_module[0];
+            $instance['args'] = array($arg_module[1]);
+        }
+        else
+            $instance['args'] = array();
+
         if(isset($wmd_msreader->modules[$instance['module']]) && isset($instance['user_id']) && $instance['user_id']) {
             $query->limit = $number;
             $query->user = $instance['user_id'];
+            $query->args = $instance['args'];
             $query->load_module($wmd_msreader->modules[$instance['module']]);
 
             $posts = $query->get_posts();
@@ -58,11 +68,11 @@ class WMD_MSReader_Module_WidgetRecentPosts extends WMD_MSReader_Modules {
                 if(isset($before_widget))
                     echo $before_widget;
                  
-                if(isset($before_widget))
+                if(isset($title) && isset($before_title))
                     echo $before_title;
                 if($title)
                     echo $title;
-                if(isset($before_widget))
+                if(isset($title) && isset($after_title))
                     echo $after_title;
 
                     if(!isset($instance['remove_widget_class']) || !$instance['remove_widget_class'])
@@ -77,10 +87,15 @@ class WMD_MSReader_Module_WidgetRecentPosts extends WMD_MSReader_Modules {
                                     echo '<a target="_blank" href="'.$wmd_msreader->modules['widget_recent_posts']->get_site_post_link($post->BLOG_ID, $post->ID).'">'.$post->post_title.'</a>';
                                     if($show_date)
                                         echo ' <span class="post-date">'.$time.'</span>';
-                                    if($show_excerpt)
-                                        echo ' <div class="post-excerpt rssSummary">'.$post->post_excerpt.'</div>';
+                            if($show_excerpt) {
+                                $content = wp_html_excerpt($post->post_excerpt, 55, '[...]');
+                                if($content)
+                                    echo ' <div class="post-excerpt rssSummary">'.$content.'</div>';
+                                else
+                                    echo '<br/>';
+                            }
                                     if($show_author)
-                                        echo ' <cite class="post-author">'.$post->post_author_display_name.'</cite>';
+                                echo ' <cite class="post-author"><small>'.__( 'By ', 'wmd_msreader' ).$post->post_author_display_name.'</small></cite>';
                                 echo '</li>';
                             }
 
@@ -169,14 +184,17 @@ class wmd_msreader_post_list extends WP_Widget {
 
                 if($options['modules'] && is_array($options['modules'])) {
                     echo '<select id="'.$this->get_field_id( 'module' ).'" class="msreader_widget_recent_posts_select" name="'.$this->get_field_name( 'module' ).'">';
-                    foreach ($wmd_msreader->available_modules as $slug => $module) {
-                        if( (isset($wmd_msreader->available_modules[$module['slug']]['can_be_default']) && $wmd_msreader->available_modules[$module['slug']]['can_be_default'] == false) || in_array($module['slug'], $blocked_modules))
-                            continue;
+                    foreach ($wmd_msreader->modules as $slug => $module) {
+                        if(in_array('query', $module->details['type']) && !in_array('query_args_required', $module->details['type']) && !in_array($module->details['slug'], $blocked_modules)) {
+                            $module_title = isset($module->details['menu_title']) ? $module->details['menu_title'] : $module->details['name'];
 
-                        $module_title = isset($module['menu_title']) ? $module['menu_title'] : $module['name'];
+                            echo '<option class="msreader_widget_recent_posts_select_option_'.$module->details['slug'].'" value="'.$module->details['slug'].'" '.selected( $current_module, $module->details['slug'], false ).'>'.$module_title.'</option>';
+                        }
+                    }
 
-                        $display = !$wmd_msreader->helpers->is_module_enabled($module['slug']) ? ' style="display: none;"' : '';
-                        echo '<option class="msreader_widget_recent_posts_select_option_'.$module['slug'].'" value="'.$module['slug'].'" '.$display.selected( $current_module, $module['slug'], false ).'>'.$module_title.'</option>';
+                    $arg_modules = apply_filters('msreader_widget_recent_posts_arg_modules', array());
+                    foreach ($arg_modules as $key => $arg_module_details) {
+                        echo '<option class="msreader_widget_recent_posts_select_option_'.$arg_module_details['class'].'" value="'.$arg_module_details['value'].'" '.selected( $current_module, $arg_module_details['value'], false ).'>'.$arg_module_details['title'].'</option>';
                     }
                     echo '</select>';
                 }

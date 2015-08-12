@@ -4,7 +4,8 @@ $module = array(
 	'description' => __( 'Displays recently added posts', 'wmd_msreader' ),
 	'slug' => 'recent_posts', 
 	'class' => 'WMD_MSReader_Module_RecentPost',
-    'global_cache' => true
+    'global_cache' => true,
+    'type' => 'query'
 );
 
 class WMD_MSReader_Module_RecentPost extends WMD_MSReader_Modules {
@@ -13,7 +14,7 @@ class WMD_MSReader_Module_RecentPost extends WMD_MSReader_Modules {
     }
 
     function add_link_to_widget($widgets) {
-		$widgets['reader']['data']['list'][] = $this->create_link_for_main_widget();
+		$widgets['reader']['data']['list'][$this->details['slug']] = $this->create_link_for_main_widget();
 
     	return $widgets;
     }
@@ -22,18 +23,19 @@ class WMD_MSReader_Module_RecentPost extends WMD_MSReader_Modules {
         global $wpdb;
 
         $limit = $this->get_limit();
+        $public = $this->get_public();
         
     	$query = "
             SELECT posts.BLOG_ID AS BLOG_ID, ID, post_author, post_date, post_date_gmt, post_content, post_title
             FROM $this->db_network_posts AS posts
             INNER JOIN $this->db_blogs AS blogs ON blogs.blog_id = posts.BLOG_ID
-            WHERE blogs.public = 1 AND blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
+            WHERE $public blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
             AND post_status = 'publish'
             AND post_password = ''
             ORDER BY post_date_gmt DESC
             $limit
         ";
-        $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit);
+        $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $public);
         $posts = $wpdb->get_results($query);
 
     	return $posts;

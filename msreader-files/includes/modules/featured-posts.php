@@ -3,7 +3,8 @@ $module = array(
 	'name' => __( 'Featured Posts', 'wmd_msreader' ),
 	'description' => __( 'Enables posts featuring', 'wmd_msreader' ),
 	'slug' => 'featured_posts', 
-	'class' => 'WMD_MSReader_Module_FeaturedPosts'
+	'class' => 'WMD_MSReader_Module_FeaturedPosts',
+    'type' => 'query'
 );
 
 class WMD_MSReader_Module_FeaturedPosts extends WMD_MSReader_Modules {
@@ -33,7 +34,7 @@ class WMD_MSReader_Module_FeaturedPosts extends WMD_MSReader_Modules {
         $featured_posts = get_site_option('msreader_featured_posts', array());
 
         if(!empty($featured_posts) || is_super_admin())
-            $widgets['reader']['data']['list'][] = $this->create_link_for_main_widget();
+            $widgets['reader']['data']['list'][$this->details['slug']] = $this->create_link_for_main_widget();
         
         return $widgets;
     }
@@ -46,7 +47,7 @@ class WMD_MSReader_Module_FeaturedPosts extends WMD_MSReader_Modules {
     }
 
     function add_featuring_button($button, $post) {
-        if(is_super_admin()) {
+        if(is_super_admin() && $post->post_date != '0000-00-00 00:00:00') {
             $text = (isset($post->featured) && $post->featured) ? __( 'Unfeature', 'wmd_msreader' ): __( 'Feature', 'wmd_msreader' );
 
             $button .= '<button class="right button button-secondary featured-posts-control">'.$text.'</button>';
@@ -56,7 +57,7 @@ class WMD_MSReader_Module_FeaturedPosts extends WMD_MSReader_Modules {
     }
 
     function dashboard_single_add_featuring_button($links, $post) {
-        if(is_super_admin()) {
+        if(is_super_admin() && $post->post_status == 'publish') {
             $text = (isset($post->featured) && $post->featured) ? __( 'Unfeature', 'wmd_msreader' ): __( 'Feature', 'wmd_msreader' );
 
             $links .= '<button class="featured-posts-control">'.$text.'</button>';
@@ -68,7 +69,7 @@ class WMD_MSReader_Module_FeaturedPosts extends WMD_MSReader_Modules {
     function add_featuring_button_in_content($content) {
         global $post;
 
-        if(is_super_admin() && !is_admin() && $post->post_type == 'post' && is_main_query() && (is_archive() || is_single() || is_home())) {
+        if(is_super_admin() && !is_admin() && $post->post_type == 'post' && $post->post_status == 'publish' && is_main_query() && (is_archive() || is_single() || is_home())) {
             $post->BLOG_ID = get_current_blog_id();
             $post = $this->additional_post_data($post);
 
@@ -84,7 +85,12 @@ class WMD_MSReader_Module_FeaturedPosts extends WMD_MSReader_Modules {
         wp_enqueue_script('jquery');
 
         wp_localize_script('jquery', 'ajaxurl', admin_url( 'admin-ajax.php' ));
-        wp_localize_script('jquery', 'msreader', array('saving' => __( 'Saving...', 'wmd_msreader' ), 'post_featured' => __( "This post is featured", "wmd_msreader" ) ));
+        wp_localize_script('jquery', 'msreader_featured_posts', array(
+            'saving' => __( 'Saving...', 'wmd_msreader' ), 
+            'post_featured' => __( "This post is featured", "wmd_msreader" ),
+            'feature' => __( "Feature", "wmd_msreader" ),
+            'unfeature' => __( "Unfeature", "wmd_msreader" ) 
+        ));
     }
 
     function add_css_js() {
@@ -147,7 +153,7 @@ class WMD_MSReader_Module_FeaturedPosts extends WMD_MSReader_Modules {
                     if(!frontend)
                         $(".msreader-post-header-navigation .spinner, .msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"'] .spinner").show();
                     else
-                        button.text(msreader.saving)
+                        button.text(msreader_featured_posts.saving)
 
                     feature_details = {
                         blog_id: blog_id,
@@ -166,9 +172,9 @@ class WMD_MSReader_Module_FeaturedPosts extends WMD_MSReader_Modules {
 
                         if(response && response != 0) {
                             if(!frontend)
-                                $(".msreader-post-header-navigation .featured-posts-control, .msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"'] .msreader-post-actions .featured-posts-control").text(response);
+                                $(".msreader-post-header-navigation .featured-posts-control, .msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"'] .msreader-post-actions .featured-posts-control").text(msreader_featured_posts[response]);
                             else
-                                button.text(response);
+                                button.text(msreader_featured_posts[response]);
 
                             if(!frontend) {
                                 if(response == 'unfeature') {
@@ -176,7 +182,7 @@ class WMD_MSReader_Module_FeaturedPosts extends WMD_MSReader_Modules {
                                     if(featured_post_indicator.length)
                                         featured_post_indicator.show();
                                     else
-                                        $(".msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"'] h2").prepend('<div class="msreader-post-indicator dashicons dashicons-star-filled featured-post" title="'+msreader.post_featured+'"></div>');
+                                        $(".msreader-post[data-blog_id='"+blog_id+"'][data-post_id='"+post_id+"'] h2").prepend('<div class="msreader-post-indicator dashicons dashicons-star-filled featured-post" title="'+msreader_featured_posts.post_featured+'"></div>');
                                     if($('.msreader_module_featured_posts').length)
                                         msreader.add_post_to_list(blog_id, post_id);
                                 }
@@ -277,6 +283,7 @@ class WMD_MSReader_Module_FeaturedPosts extends WMD_MSReader_Modules {
         global $wpdb;
 
         $limit = $this->get_limit();
+        $public = $this->get_public();
 
         $featured_posts = get_site_option('msreader_featured_posts', array());
         $featured_posts_where = array();
@@ -292,14 +299,14 @@ class WMD_MSReader_Module_FeaturedPosts extends WMD_MSReader_Modules {
                 SELECT posts.BLOG_ID AS BLOG_ID, ID, post_author, post_date, post_date_gmt, post_content, post_title
                 FROM $this->db_network_posts AS posts
                 INNER JOIN $this->db_blogs AS blogs ON blogs.blog_id = posts.BLOG_ID
-                WHERE blogs.public = 1 AND blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
+                WHERE $public blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
                 AND post_status = 'publish'
                 AND post_password = ''
                 $featured_posts_where
                 ORDER BY post_date_gmt DESC
                 $limit
             ";
-            $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit,  $featured_posts);
+            $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $public, $featured_posts);
 
             $posts = $wpdb->get_results($query);
         }

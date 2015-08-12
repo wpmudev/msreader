@@ -4,7 +4,8 @@ $module = array(
 	'description' => __( 'Displays additional information about current user in main reader page widget', 'wmd_msreader' ),
 	'slug' => 'user_widget', 
 	'class' => 'WMD_MSReader_Module_UserWidget',
-    'can_be_default' => false
+    'can_be_default' => false,
+    'type' => 'reader-widget'
 );
 
 class WMD_MSReader_Module_UserWidget extends WMD_MSReader_Modules {
@@ -12,8 +13,8 @@ class WMD_MSReader_Module_UserWidget extends WMD_MSReader_Modules {
 	function init() {
 		add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_widget'), 20 );
 
-        add_action('save_post', array($this,'flush_user_post_count'));
-        add_action('delete_post', array($this,'flush_user_post_count'));
+        //add_action('save_post', array($this,'flush_user_post_count'));
+        //add_action('delete_post', array($this,'flush_user_post_count'));
 
         add_action('admin_head', array( $this, "add_css" ));
     }
@@ -59,12 +60,12 @@ class WMD_MSReader_Module_UserWidget extends WMD_MSReader_Modules {
         //$user_info['main']['url'] = '<div class="user-site-url"><small><a title="Visit site" href="'.$user_site_url.'">'.str_replace('https://', '', str_replace('http://', '', $user_site_url)).'</a></small></div>';
 
         $user_info['stats']['my-sites'] = 
-        '<a title="View your sites" href="'.admin_url('my-sites.php').'"><h4>'.__( 'My Sites', 'wmd_msreader' ).'</h4>
+        '<a title="'.__( 'View your sites', 'wmd_msreader' ).'" href="'.admin_url('my-sites.php').'"><h4>'.__( 'My Sites', 'wmd_msreader' ).'</h4>
         <p>'.count($user_sites).'</p></a>';
 
         /*
         $user_info['stats']['my-posts'] = 
-        '<a title="View your posts" href="'.$this->get_module_dashboard_url(array('author_id' => $current_user->ID), 'filter_blog_author').'"><h4>'.__( 'My Posts', 'wmd_msreader' ).'</h4>
+        '<a title="'.__( 'View your posts', 'wmd_msreader' ).'" href="'.$this->get_module_dashboard_url(array('author_id' => $current_user->ID), 'filter_blog_author').'"><h4>'.__( 'My Posts', 'wmd_msreader' ).'</h4>
         <p>'. $this->get_user_post_count($current_user->ID).'</p></a>';
         */
 

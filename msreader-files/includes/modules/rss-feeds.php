@@ -4,7 +4,8 @@ $module = array(
 	'description' => __( 'Allows users to get links for all post lists available in Reader', 'wmd_msreader' ),
 	'slug' => 'rss_feeds', 
 	'class' => 'WMD_MSReader_Module_RssFeeds',
-    'can_be_default' => false
+    'can_be_default' => false,
+    'type' => 'other'
 );
 
 class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
@@ -31,7 +32,9 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
     function add_rss_icon($current_title) {
         global $msreader_main_query;
 
-        if($msreader_main_query->module->details['can_be_default'] || in_array($msreader_main_query->module->details['slug'], apply_filters('msreader_rss_feeds_extra_enable_feed', array())))
+        $blocked_modules = apply_filters('msreader_rss_feeds_blocked_modules', array());
+
+        if(in_array('query', $msreader_main_query->module->details['type']) && !in_array($msreader_main_query->module->details['slug'], $blocked_modules))
             $current_title = $current_title.'<a class="msreader-rss-feeds-link dashicons dashicons-rss" href="#" title="'.__('Get private RSS feed for this page', 'wmd_msreader').'"></a>';
         
         return $current_title;
@@ -40,9 +43,9 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
     function add_rss_info_box() {
         global $msreader_main_query;
 
-        if($msreader_main_query->module->details['can_be_default'] || in_array($msreader_main_query->module->details['slug'], apply_filters('msreader_rss_feeds_extra_enable_feed', array()))) {
-            $module = $msreader_main_query->module->details['slug'];
-            $module_args = $msreader_main_query->module->args;
+        $blocked_modules = apply_filters('msreader_rss_feeds_blocked_modules', array());
+
+        if(in_array('query', $msreader_main_query->module->details['type']) && !in_array($msreader_main_query->module->details['slug'], $blocked_modules)) {
             $feed_url = $this->get_rss_feed_link(0);
             ?>
 
@@ -132,10 +135,11 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
                 $("#msreader-dashboard").on("click", ".msreader-rss-feeds-reset-key", function(event) {
                     event.preventDefault();
                     var box = $('.msreader-rss-feeds-box');
+                    var url_input = box.find("input");
 
                     box.find(".spinner").show();
 
-                    rss_feed_details = {module: box.attr('data-module'), regenerate: 1};
+                    rss_feed_details = {module: box.attr('data-module'), regenerate: 1, initial_url: url_input.val()};
                     args = {
                         source: "msreader",
                         module: "rss_feeds",
@@ -147,7 +151,7 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
                         box.find(".spinner").fadeOut(200, function() {$(this).hide()});
 
                         if(response && response != 0) {
-                            box.find("input").val(response);
+                            url_input.val(response);
                         }
                     });
                 });
@@ -198,7 +202,7 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
         <channel>
             <title><?php echo __('Reader','wmd_msreader'); echo ': '.$msreader_main_query->module->details['name'].' - '; bloginfo_rss('name'); ?></title>
             <atom:link href="<?php self_link(); ?>" rel="self" type="application/rss+xml" />
-            <link><?php echo get_admin_url( get_user_meta(get_current_user_id(), 'primary_blog', true), 'index.php?page=msreader.php'); ?></link>
+            <link><?php echo get_admin_url( get_user_meta($this->get_user(), 'primary_blog', true), 'index.php?page=msreader.php'); ?></link>
             <lastBuildDate><?php echo mysql2date('D, d M Y H:i:s +0000', isset($posts[0]->post_date) ? $posts[0]->post_date : '', false); ?></lastBuildDate>
             <sy:updatePeriod><?php echo apply_filters( 'rss_update_period', 'hourly' ); ?></sy:updatePeriod>
             <sy:updateFrequency><?php echo apply_filters( 'rss_update_frequency', 1 ); ?></sy:updateFrequency>
@@ -237,32 +241,24 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
         exit();
     }
 
-    function get_rss_feed_link($generate = 0, $regenerate = 0, $module = 0) {
+    function get_rss_feed_link($generate = 0, $regenerate = 0) {
         if(defined('DOING_AJAX'))
             error_reporting(0);
 
-        if(!$module)
             if(isset($this->args['module']))
                 $module = $this->args['module'];
             else {
                 global $msreader_main_query;
                 $module = $msreader_main_query->module->details['slug'];
             }
-        if(isset($this->args['generate']) && $this->args['generate'])
-            $generate = 1;
-        if(isset($this->args['regenerate']) && $this->args['regenerate'])
-            $regenerate = 1;
-        if(in_array($module, apply_filters('msreader_rss_feeds_enable_args', array())))
-            if(isset($this->args['args']) && count($this->args['args']))
-                $module_args = $this->args['args'];
-            elseif(isset($msreader_main_query->module->args) && count($msreader_main_query->module->args))
-                $module_args = $msreader_main_query->module->args;
 
-        $user_id = $this->user;
+        $generate = (isset($this->args['generate']) && $this->args['generate']) ? 1 : $generate;
+        $regenerate = (isset($this->args['regenerate']) && $this->args['regenerate']) ? 1 : $regenerate;
+
+        $user_id = get_current_user_id();
 
         $user_feed_key = get_user_meta($user_id, 'msreader_rss_feeds_key', true);
         if((empty($user_feed_key) && $generate) || $regenerate) {
-
             $user_id = get_current_user_id();
             $user_data = get_userdata($user_id);
 
@@ -270,6 +266,18 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
 
             update_user_meta( $user_id, 'msreader_rss_feeds_key', $user_feed_key );
         }
+
+        if($user_feed_key) {
+            if($regenerate) {
+                $feed_link_args = array('key' => $user_feed_key);
+
+                $initial_url = $this->args['initial_url'];
+            }
+            else {
+                if(isset($this->args['args']) && count($this->args['args']))
+                    $module_args = $this->args['args'];
+                elseif(isset($msreader_main_query->module->args) && count($msreader_main_query->module->args))
+                    $module_args = $msreader_main_query->module->args;
 
         $feed_link_args = array(
                 'module' => $module,
@@ -279,7 +287,13 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
         if(isset($module_args))
             $feed_link_args['args'] = $module_args;
 
-        $feed_link = !empty($user_feed_key) ? add_query_arg($feed_link_args, network_site_url()) : '';
+                $initial_url = site_url();
+            }
+
+            $feed_link = add_query_arg($feed_link_args, $initial_url);
+        }
+        else
+            $feed_link = '';
 
         if(defined('DOING_AJAX')) {
             echo $feed_link;

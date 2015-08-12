@@ -45,8 +45,18 @@ foreach ($sidebar_widgets as $slug => $details) {
 						parse_str($link_query, $link_args);
 						$default_module = apply_filters('msreader_default_module', $this->plugin['site_options']['default_module']);
 
-						$active = ($this->helpers->is_page_link_active($value['link']) || ($link_args['module'] == $default_module && !isset($_GET['module']))) ? ' class="active"' : '';
-						echo '<li'.$active.'>'.(isset($value['before']) ? $value['before'] : '').'<a href="'.$value['link'].'">'.$value['title'].'</a>'.(isset($value['after']) ? $value['after'] : '').'</li>';
+						if(isset($_POST['current_url']) && !isset($_GET['module'])) {
+							$parts = parse_url($_POST['current_url']);
+							parse_str($parts['query'], $query);
+							$current_module = isset($query['module']) ? $query['module'] : 0;
+						}
+						else
+							$current_module = isset($_GET['module']) ? $_GET['module'] : 0;
+
+						$link_classes = isset($value['link_classes']) ? ' class="'.(is_array($value['link_classes']) ? implode(' ', $value['link_classes']) : $value['link_classes']).'"' : '';
+
+						$active = ($this->helpers->is_page_link_active($value['link']) || ($link_args['module'] == $default_module && !$current_module)) ? ' class="active"' : '';
+						echo '<li'.$active.'>'.(isset($value['before']) ? $value['before'] : '').'<a href="'.$value['link'].'"'.$link_classes.'>'.$value['title'].'</a>'.(isset($value['after']) ? $value['after'] : '').'</li>';
 					}
 					else
 						echo '<li>'.(isset($value['before']) ? $value['before'] : '').$value['title'].(isset($value['after']) ? $value['after'] : '').'</li>';

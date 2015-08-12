@@ -9,7 +9,8 @@ $module = array(
     'default_options' => array(
         'widget_links_limit' => 5,
         'widget_sample_limit' => 100
-    )
+    ),
+    'type' => array('query', 'query_args_required')
 );
 
 class WMD_MSReader_Module_TrendingTags extends WMD_MSReader_Modules {
@@ -23,12 +24,11 @@ class WMD_MSReader_Module_TrendingTags extends WMD_MSReader_Modules {
     function add_widget($widgets) {
         global $wpdb;
 
-        $limit_sample_total = 100;
     	$limit_sample = $this->get_limit($this->options['widget_sample_limit'], 1);
     	$limit_links = $this->options['widget_links_limit']; 
     	$limit = $this->get_limit($limit_links, 1);
 
-		$query_hash = md5($this->cache_init.$this->details['slug'].$limit_sample_total.$limit_links);
+		$query_hash = md5($this->cache_init.$this->details['slug'].$limit_sample.$limit_links);
 		$cache_group = 'msreader_global';
 		$top_tags = wp_cache_get('widget_'.$query_hash, $cache_group);
 
@@ -87,6 +87,7 @@ class WMD_MSReader_Module_TrendingTags extends WMD_MSReader_Modules {
         global $wpdb;
 
         $limit = $this->get_limit();
+        $public = $this->get_public();
         $tax_id = $this->args[0];
         
     	$query = $wpdb->prepare("
@@ -94,14 +95,14 @@ class WMD_MSReader_Module_TrendingTags extends WMD_MSReader_Modules {
             FROM $this->db_network_posts AS posts
             INNER JOIN $this->db_blogs AS blogs ON blogs.blog_id = posts.BLOG_ID
             INNER JOIN $this->db_network_term_rel AS b ON (b.object_id = posts.ID AND b.blog_id = posts.BLOG_ID)
-            WHERE blogs.public = 1 AND blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
+            WHERE $public blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
             AND post_status = 'publish'
             AND post_password = ''
             AND b.term_taxonomy_id = %d
             ORDER BY post_date_gmt DESC
             $limit
         ", $tax_id);
-        $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $tax_id);
+        $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $public, $tax_id);
         $posts = $wpdb->get_results($query);
 
     	return $posts;

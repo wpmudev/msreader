@@ -17,7 +17,7 @@
 	<div class="msreader-post-holder">
 		<h3 class="theme-name"><?php echo apply_filters('msreader_post_title', get_the_title(), $post); ?><span class="theme-version msreader-blogname"><?php echo apply_filters('msreader_post_blog', $post->blog_details->blogname, $post); ?></span></h3>
 		<h4 class="theme-author">
-			<?php echo $post->post_date_relative; ?>
+			<?php echo human_time_diff( get_the_time('U'), time() ); //we are inside blog, we have direct access to post ?>
 			<?php _e( 'ago', 'wmd_msreader' ); ?>
 			<?php _e( 'by', 'wmd_msreader' ); ?>
 			<?php echo apply_filters('msreader_post_author', get_the_author(), $post); ?>
@@ -42,13 +42,18 @@
 	<div class="msreader-add-comment">
 		<?php if(comments_open( $post->ID )) { ?>
 			<form action="" method="post" class="add-comment-form">
-				<div class="add-comment-info"><h4><?php _e('Add new comment', 'wmd_msreader' ); ?></h4></div>
+				<div class="add-comment-info">
+					<h4>
+						<?php _e('Add comment', 'wmd_msreader' ); ?> 
+						<?php do_action('msreader_comment_form_after_title', $post); ?>
+					</h4>
+				</div>
 				<p class="comment-form-comment">
 					<textarea id="comment" name="comment_add_data[comment]" cols="44" rows="7" aria-required="true"></textarea>
 				</p>
 				<p class="form-submit">
 					<span class="reply-info" style="display:none;"><small><?php _e('Reply to', 'wmd_msreader' ); ?>:</small> <strong class="reply-parent-name"></strong> <small>(<a class="reply-cancel" href="#"><?php _e('cancel', 'wmd_msreader' ); ?></a>)</small></span>
-					<input name="submit" type="button" class="button button-primary right" id="submit" value="Post Comment">
+					<input name="submit" type="button" class="button button-primary right" id="submit" value="<?php _e('Post Comment', 'wmd_msreader' ); ?>">
 					<span class="spinner spinner-save"></span>
 					<input type="hidden" name="comment_add_data[comment_parent]" id="comment-parent" value="0">
 					<input type="hidden" name="nonce_add_comment" id="nonce_add_comment" value="<?php echo wp_create_nonce( 'add_comment' ); ?>">

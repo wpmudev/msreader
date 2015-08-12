@@ -5,13 +5,14 @@ $module = array(
 	'slug' => 'search', 
 	'class' => 'WMD_MSReader_Module_Search',
     'can_be_default' => false,
-    'global_cache' => true
+    'global_cache' => true,
+    'type' => array('query', 'query_args_required')
 );
 
 class WMD_MSReader_Module_Search extends WMD_MSReader_Modules {
 
 	function init() {
-		add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_widget'), 10 );
+		add_filter( 'msreader_dashboard_reader_sidebar_widgets', array($this,'add_widget'), 5 );
         add_action( 'admin_print_styles', array($this,'add_css'));
 
         add_filter('msreader_rss_feeds_extra_enable_feed', array($this,'add_module_slug_to_array'),10,1);
@@ -40,7 +41,7 @@ class WMD_MSReader_Module_Search extends WMD_MSReader_Modules {
 
         $search_value = isset($this->args['search_value']) ? esc_attr($this->args['search_value']) : '';
         $search_html = '
-            <form id="msreader-searc" action="'.add_query_arg(array('module' => 'search')).'" method="post">
+            <form id="msreader-searc" action="'.add_query_arg(array('module' => 'search'), admin_url('index.php?page=msreader.php')).'" method="post">
                 <p><input name="args[search_value]" class="fullwidth-text" type="text" value="'.$search_value.'" placeholder="'.__('Search...', 'wmd_msreader').'"/><p/>
                 <label for="search_title">
                 <input name="args[search_title]" id="search_title" type="checkbox" value="1" '.checked( isset($this->args['search_title']) ? $this->args['search_title'] : '', true, false ).'>'.__('Title', 'wmd_msreader').' 
@@ -86,6 +87,7 @@ class WMD_MSReader_Module_Search extends WMD_MSReader_Modules {
 
         if(!$blocked) {
             $limit = $this->get_limit();
+            $public = $this->get_public();
 
             //set title search as default
             if(!isset($this->args['search_author']) && !isset($this->args['search_tag']) && !isset($this->args['search_title']))
@@ -103,7 +105,7 @@ class WMD_MSReader_Module_Search extends WMD_MSReader_Modules {
                 $query .= "
                     LEFT JOIN $this->db_users AS d ON (d.ID = posts.post_author)";
             $query .= "
-                WHERE blogs.public = 1 AND blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
+                WHERE $public blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
                 AND post_status = 'publish'
                 AND post_password = ''
                 ";
@@ -128,7 +130,7 @@ class WMD_MSReader_Module_Search extends WMD_MSReader_Modules {
                 ORDER BY post_date_gmt DESC
                 $limit
                 ";
-            $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit);
+            $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $public);
             $posts = $wpdb->get_results($query);
         }
         else

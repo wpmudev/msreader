@@ -7,7 +7,8 @@ $module = array(
     'global_cache' => true,
     'default_options' => array(
         'minimum_comment_count' => 5
-    )
+    ),
+    'type' => 'query'
 );
 
 class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
@@ -18,7 +19,7 @@ class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
     }
 
     function add_link_to_widget($widgets) {
-		$widgets['reader']['data']['list'][] = $this->create_link_for_main_widget();
+		$widgets['reader']['data']['list'][$this->details['slug']] = $this->create_link_for_main_widget();
 
     	return $widgets;
     }
@@ -28,6 +29,7 @@ class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
         
         $limit = $this->get_limit();
         $limit_sample = $this->get_limit($this->limit_sample,1);
+        $public = $this->get_public();
 
         $minimum_comment_count = $this->options['minimum_comment_count'] > 0 ? $this->options['minimum_comment_count']-1 : 0;
         
@@ -37,7 +39,7 @@ class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
                 SELECT posts.BLOG_ID AS BLOG_ID, ID, post_author, post_date, post_date_gmt, post_content, post_title, comment_count
                 FROM $this->db_network_posts AS posts
                 INNER JOIN $this->db_blogs AS blogs ON blogs.blog_id = posts.BLOG_ID
-                WHERE blogs.public = 1 AND blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
+                WHERE $public blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
                 AND post_status = 'publish'
                 AND post_password = ''
                 ORDER BY post_date_gmt DESC
@@ -47,7 +49,7 @@ class WMD_MSReader_Module_PopularPost extends WMD_MSReader_Modules {
             ORDER BY post_date_gmt DESC
             $limit
         ";
-        $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $limit_sample, $minimum_comment_count);
+        $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $public, $limit_sample, $minimum_comment_count);
         $posts = $wpdb->get_results($query);
 
     	return $posts;
