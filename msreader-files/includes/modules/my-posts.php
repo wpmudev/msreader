@@ -4,7 +4,7 @@ $module = array(
 	'description' => __( 'Displays current users posts', 'wmd_msreader' ),
 	'slug' => 'my_posts', 
 	'class' => 'WMD_MSReader_Module_MyPosts',
-    'type' => 'query'
+    'type' => array('query', 'query-private')
 );
 
 class WMD_MSReader_Module_MyPosts extends WMD_MSReader_Modules {

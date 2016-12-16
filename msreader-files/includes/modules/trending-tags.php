@@ -23,7 +23,7 @@ class WMD_MSReader_Module_TrendingTags extends WMD_MSReader_Modules {
 
     function add_widget($widgets) {
         global $wpdb;
-
+        
     	$limit_sample = $this->get_limit($this->options['widget_sample_limit'], 1);
     	$limit_links = $this->options['widget_links_limit']; 
     	$limit = $this->get_limit($limit_links, 1);

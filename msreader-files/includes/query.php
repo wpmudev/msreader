@@ -3,11 +3,12 @@ class WMD_MSReader_Query {
 	var $module;
 
 	var $page = 1;
-	var $limit = 7;
+	var $limit = 10;
 	var $limit_sample = 100;
 	var $args = array();
 	var $last_date;
 	var $user = 0;
+	var $blog = 0;
 
 	var $blog_id;
 	var $post_id;
@@ -41,13 +42,16 @@ class WMD_MSReader_Query {
 		$this->module->args = $this->args;
 		$this->module->last_date = $this->last_date;
 		$this->module->user = ($this->user && is_numeric($this->user)) ? $this->user : get_current_user_id();
+		$this->module->blog = ($this->blog && is_numeric($this->blog)) ? $this->blog : get_current_blog_id();
 
 		$this->module->load_module();
 
 		//check if its a query used by everybody
 		$store_user_id = !$this->module->details['global_cache'] ? $this->module->user : '';
+		//check if its a query related to currently displayed blog
+		$store_blog_id = $this->module->details['blog_specific_cache'] ? $this->module->blog : '';
 		//set up secret code for query
-		$this->module->query_hashes['get_posts'] = md5($this->module->cache_init.$this->module->details['slug'].$this->page.$this->limit.http_build_query($this->args).$store_user_id);
+		$this->module->query_hashes['get_posts'] = md5($this->module->cache_init.$this->module->details['slug'].$this->page.$this->limit.http_build_query($this->args).$store_user_id.$store_blog_id);	
 	}
 
 	function get_query_details() {
@@ -81,6 +85,29 @@ class WMD_MSReader_Query {
 		}
 
 		return $posts;
+	}
+
+	function get_posts_count() {
+		$count = 0;
+
+		if($this->module) {
+			if(!$this->module->details['allow_count'])
+				return false;
+
+			$query_prefix = apply_filters('msreader_query_count_prefix', 'query_count');
+		
+			//lets load
+			$count = (!$this->module->details['disable_cache']) ? wp_cache_get($query_prefix.'_'.$this->module->query_hashes['get_posts'], 'msreader_global') : 0;
+
+			if(!$count) {
+				$count = $this->module->query(true);
+
+				if(!$this->module->details['disable_cache'])
+					wp_cache_set($query_prefix.'_'.$this->module->query_hashes['get_posts'], $count, 'msreader_global', $this->module->details['cache_time'] ? $this->module->details['cache_time'] : 900);
+			}
+		}
+
+		return $count;
 	}
 
 	function get_post() {
@@ -118,7 +145,7 @@ class WMD_MSReader_Query {
 			}
 			else
 				$status = false;
-
+			
 
 			if(isset($restore))
 				restore_current_blog();
@@ -147,7 +174,7 @@ class WMD_MSReader_Query {
 
 			$comments = get_comments($args);
 
-			//add fake comments if we removed some for pagination to be correct
+			//add fake comments if we removed some for pagination to be correct - we should fix it by searching by date
 			if(isset($this->comments_args['comments_removed']) && $this->comments_args['comments_removed'] > 0) {
 				for($i =0; $i < $this->comments_args['comments_removed']; $i++){
 				    $comments = array_merge(array($comments[0]), $comments);
@@ -191,7 +218,7 @@ class WMD_MSReader_Query {
 			if ( '' == $comment_content )
 				return false;
 
-			$comment_parent 	  = isset($this->comment_add_data['comment_parent']) ? absint($this->comment_add_data['comment_parent']) : 0;
+			$comment_parent = isset($this->comment_add_data['comment_parent']) ? absint($this->comment_add_data['comment_parent']) : 0;
 			$comment_type = (isset($this->comment_add_data['private']) && !empty($this->comment_add_data['private'])) ? 'private' : '';
 			if($comment_parent) {
 				$comment_parent_comment = get_comment($comment_parent);
@@ -214,7 +241,7 @@ class WMD_MSReader_Query {
 
 			$commentdata = compact('comment_post_ID', 'comment_author', 'comment_author_email', 'comment_author_url', 'comment_content', 'comment_type', 'comment_parent', 'user_id');
 			if($comment_type != 'private' && !$comments_closed)
-			$comment_id = wp_new_comment( $commentdata );
+				$comment_id = wp_new_comment( $commentdata );
 			else {
 				$commentdata['comment_approved'] = 'private';
 				$comment_id = wp_insert_comment( $commentdata );
@@ -251,28 +278,39 @@ class WMD_MSReader_Query {
 
 	//set additional details for post
 	function set_additional_posts_data($posts, $blog_details = array()) {
-		if(is_array($posts))
+		if(is_array($posts)) {
+			$posts = apply_filters('msreader_set_additional_posts_data_before', $posts, $this->module);
+
 			foreach ($posts as $key => $post) {
-				$posts[$key]->post_title = stripslashes($post->post_title);
-				$posts[$key]->post_content = stripslashes($post->post_content);
+				if($post) {
+					$posts[$key] = apply_filters('msreader_set_additional_post_data_before', $post, $this->module);
 
-		//get blog details
-		if(!isset($post->BLOG_ID))
-					$posts[$key]->BLOG_ID = get_current_blog_id();
-		if(!isset($blog_details[$post->BLOG_ID]))
-			$blog_details[$post->BLOG_ID] = get_blog_details($post->BLOG_ID);
-				$posts[$key]->blog_details = $blog_details[$post->BLOG_ID];
+					$posts[$key]->post_title = stripslashes($post->post_title);
+					$posts[$key]->post_content = stripslashes($post->post_content);
 
-		//set featured image
-				$posts[$key]->featured_media_html = $this->module->get_featured_media_html($post);
+					//get blog details
+					if(!isset($post->BLOG_ID))
+						$posts[$key]->BLOG_ID = get_current_blog_id();
+					if(!isset($blog_details[$post->BLOG_ID]))
+						$blog_details[$post->BLOG_ID] = get_blog_details($post->BLOG_ID);
+					$posts[$key]->blog_details = $blog_details[$post->BLOG_ID];
 
-		//change excerpt
-				$posts[$key]->post_excerpt = $this->module->get_excerpt($post);
+					//set featured image
+					$posts[$key]->featured_media_html = $this->module->get_featured_media_html($post);
 
-		//user details
-				$posts[$key]->post_author_display_name = get_the_author_meta( 'display_name', $post->post_author );
-				$posts[$key]->post_author_avatar_html = get_avatar($post->post_author, 48);
+					//change excerpt
+					$posts[$key]->post_excerpt = $this->module->get_excerpt($post);
+
+					//user details
+					$posts[$key]->post_author_display_name = get_the_author_meta( 'display_name', $post->post_author );
+					$posts[$key]->post_author_avatar_html = get_avatar($post->post_author, 48);
+
+					$posts = apply_filters('msreader_set_additional_post_data_after', $posts, $this->module);
+				}
 			}
+
+			$posts = apply_filters('msreader_set_additional_posts_data_after', $posts, $this->module);
+		}
 
 		return $posts;
 	}
@@ -280,19 +318,21 @@ class WMD_MSReader_Query {
 	//set additional details for post that cant be cached
 	function set_additional_posts_data_dynamic($posts) {
 		if(is_array($posts)) {
-			$posts = apply_filters('msreader_set_additional_posts_data_dynamic_before', $posts);
+			$posts = apply_filters('msreader_set_additional_posts_data_dynamic_before', $posts, $this->module);
 
 			foreach ($posts as $key => $post) {
-				$posts[$key] = apply_filters('msreader_set_additional_post_data_dynamic_before', $post);
+				if($post) {
+					$posts[$key] = apply_filters('msreader_set_additional_post_data_dynamic_before', $post, $this->module);
 
-		$time = strtotime($post->post_date_gmt) ? $post->post_date_gmt : $post->post_date;
-				$posts[$key]->post_date_relative = human_time_diff( strtotime($time), time() );
-				$posts[$key]->post_date_stamp = strtotime($post->post_date_gmt);
+					$time = strtotime($post->post_date_gmt) ? $post->post_date_gmt : $post->post_date;
+					$posts[$key]->post_date_relative = human_time_diff( strtotime($time), time() );
+					$posts[$key]->post_date_stamp = strtotime($post->post_date_gmt);
 
-				$posts[$key] = apply_filters('msreader_set_additional_post_data_dynamic_after', $post);
+					$posts[$key] = apply_filters('msreader_set_additional_post_data_dynamic_after', $post, $this->module);
+				}
 			}
 
-			$posts = apply_filters('msreader_set_additional_posts_data_dynamic_after', $posts);
+			$posts = apply_filters('msreader_set_additional_posts_data_dynamic_after', $posts, $this->module);
 		}
 
 		return $posts;
@@ -301,7 +341,7 @@ class WMD_MSReader_Query {
 	//helper that applies moderation action on comments to replies
 	function moderate_comment_action($action, $comment_id = 0, $post_id = 0) {
 		global $wpdb;
-
+		
 		$status = false;
 		if(current_user_can('moderate_comment') || current_user_can('edit_post', $post_id)) {		
 			$replies = $wpdb->get_results( $wpdb->prepare("SELECT comment_ID FROM $wpdb->comments WHERE comment_parent = %d", $comment_id) );
@@ -314,7 +354,7 @@ class WMD_MSReader_Query {
 			}		
 
 			foreach ($replies as $reply) {
-				$status = $this->moderate_comment_action($action, $reply->comment_ID, $post_id);
+					$status = $this->moderate_comment_action($action, $reply->comment_ID, $post_id);
 			}
 
 			switch ($action) {
@@ -335,7 +375,7 @@ class WMD_MSReader_Query {
 					$status = wp_set_comment_status($comment_id, 1);
 					$status = $status ? 'unapprove' : 'approve';
 					break;
-			}
+				}
 		}
 
 		return $status;

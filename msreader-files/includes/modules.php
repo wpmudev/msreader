@@ -11,7 +11,7 @@ abstract class WMD_MSReader_Modules {
     var $limit;
     var $limit_sample;
     var $args;
-    var $cache_init;
+    var $cache_init = 1;
     var $main = 0;
     var $query_hashes = array();
     var $user;
@@ -52,6 +52,8 @@ abstract class WMD_MSReader_Modules {
             $this->details['can_be_default'] = true;
         if(!isset($this->details['global_cache']))
             $this->details['global_cache'] = false;
+        if(!isset($this->details['blog_specific_cache']))
+            $this->details['blog_specific_cache'] = false;
         if(!isset($this->details['disable_cache']))
             $this->details['disable_cache'] = false;
         if(!isset($this->details['cache_time']))
@@ -60,6 +62,8 @@ abstract class WMD_MSReader_Modules {
             $this->details['default'] = 'other';
         if(!is_array($this->details['type']))
             $this->details['type'] = array($this->details['type']);
+        if(!isset($this->details['allow_count']))
+            $this->details['allow_count'] = false;
 
         //set DB details
         $this->db_network_posts = apply_filters('msreader_db_network_posts', $wpdb->base_prefix.'network_posts');
@@ -130,20 +134,13 @@ abstract class WMD_MSReader_Modules {
         $max_sentences = 5;
         $max_paragraphs = 3;
 
-        if(!shortcode_exists('gallery')) {
-        	add_shortcode( 'gallery' , create_function('', 'return false;'));
-            $fake_gallery_shortcode_added = 1;
-        }
-        $post_content = strip_shortcodes( $post->post_content );
-
-        if(isset($fake_gallery_shortcode_added))
-            remove_shortcode( 'gallery' );
+        $post_content = preg_replace("~(?:\[/?)[^/\]]+/?\]~s", '', $post->post_content);
 
         if(class_exists('DOMDocument')) {
             $allowed_tags = array('<strong>','<blockquote>','<em>','<p>', '<span>', '<a>');
-            
+
             $post_content = wpautop(strip_tags($post_content, implode('', $allowed_tags)));
-                       
+                      
             $dom = new DOMDocument();
             $dom->loadHTML('<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /></head><body>'.$post_content.'</body></html>');
             $elements = $dom->documentElement;
@@ -284,15 +281,26 @@ abstract class WMD_MSReader_Modules {
             return 'LIMIT 0,10';
     }
 
+    function get_allowed_sites() {
+        $allowed_sites = apply_filters('msreader_allowed_sites', array(), $this->args, $this->details['slug']);
+        //lets get max 250 newest unique numbers(blog_ids) only
+        $allowed_sites = array_unique($allowed_sites);
+        $allowed_sites = array_filter($allowed_sites, 'is_numeric');
+        arsort($allowed_sites);
+        $allowed_sites = array_slice($allowed_sites, 0, 250);
+
+        return $allowed_sites;
+    }
+
     //get limit string
     function get_public() {
         $public = $this->helpers->is_public_only();
 
         if($public) {
-            $allowed_sites = apply_filters('msreader_filter_blog_public_query_allowed_sites', 'public', $this->args, $this->details['slug']);
+            $allowed_sites = $this->get_allowed_sites(); //results are safe for query
             
-            if(is_array($allowed_sites) && count($allowed_sites) > 0 && array_filter($allowed_sites, 'is_int'))
-                $query_part = '(blogs.public = 1 OR posts.BLOG_ID IN('.implode(',', array_slice(array_unique($allowed_sites), 0, 50)).')) AND';
+            if(is_array($allowed_sites) && count($allowed_sites) > 0)
+                $query_part = '(blogs.public = 1 OR posts.BLOG_ID IN('.implode(',', $allowed_sites).')) AND';
             elseif($allowed_sites == 'all')
                 $query_part = '';
             else
@@ -411,10 +419,11 @@ abstract class WMD_MSReader_Modules {
     }
 
     function get_user() {
-        if(!isset($this->user))
-            $this->user = get_current_user_id();
+        return (isset($this->user) && is_numeric($this->user)) ? $this->user : get_current_user_id();
+    }
 
-        return $this->user;
+    function get_blog() {
+        return (isset($this->blog) && is_numeric($this->blog)) ? $this->blog : get_current_blog_id();
     }
 
     function open_site_post() {

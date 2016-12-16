@@ -5,6 +5,8 @@ var MSReader = function($) {
 	msreader_main_query.page = parseInt(msreader_main_query.page)-1;
 	msreader_main_query.last_date = parseInt(msreader_main_query.last_date);
 	msreader_main_query.comments_page = parseInt(msreader_main_query.comments_page);
+	msreader_main_query.limit = parseInt(msreader_main_query.limit);
+	msreader_main_query.load_count = 0;
 	msreader_main_query.comments_end = 0;
 	msreader_main_query.comments_offset = 0;
 	msreader_main_query.comments_removed = 0;
@@ -33,14 +35,17 @@ var MSReader = function($) {
 		//load more posts then limit on huge screens
 		var fill_the_screen_with_posts = setInterval(function () {
 			if(msreader_main_query.page > 0) {
-				if(!msreader_main_query.end && $('#wpbody-content').height() < $(window).height() && $('.msreader-posts').find('.msreader-post').length >= msreader_main_query.limit) {
+				if(!msreader_main_query.end && $('#wpbody-content').height() < $(window).height() && msreader_main_query.load_count >= msreader_main_query.limit) {
 					if(!msreader_main_query.ajax_loading)
 						display_posts_ajax();
 				}
 				else {
-					if($('.msreader-posts').find('.msreader-post').length < msreader_main_query.limit)
+					/*
+					msreader_main_query.end should be set in latest "display_posts_ajax" so this one is hopefully not needed
+					if(msreader_main_query.load_count < msreader_main_query.limit)
 						msreader_main_query.end = 1;
-					
+					*/
+
 					clearInterval(fill_the_screen_with_posts);
 				}
 
@@ -397,7 +402,7 @@ var MSReader = function($) {
 				});
 			}
 		});
-	
+
 		//handle general popup opening
 		$('#wpbody-content').on('click', '.msreader-show', function(event) {
 			event.preventDefault();
@@ -520,13 +525,12 @@ var MSReader = function($) {
 
 		$.post(ajaxurl, args, function(response) {
 			$('.msreader-post-loader').hide();
-			if(response && response != 0) {
-				response = $($.parseHTML(response));
-				count = response.filter('.msreader-post').length;
+			if(response.success) {
+				msreader_main_query.load_count = response.data.count;
 				
-				$('.msreader-post-loader').before(response);
+				$('.msreader-post-loader').before(response.data.html);
 
-				if(msreader_main_query.limit > count)
+				if(msreader_main_query.limit > msreader_main_query.load_count)
 					msreader_main_query.end = 1;
 
 				msreader_main_query.last_date = $('.msreader-posts .msreader-post:last .post-time').attr('data-post_time');

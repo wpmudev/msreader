@@ -39,8 +39,7 @@ class WMD_MSReader_Module_UserWidget extends WMD_MSReader_Modules {
     }
 
     function add_widget($widgets) {
-        global $current_user;
-        get_currentuserinfo();
+        $current_user = wp_get_current_user();
         $current_blog_id = get_current_blog_id();
         $user_sites = get_blogs_of_user( $current_user->ID );
         $primary_site = get_user_meta($current_user->ID, 'primary_blog', true);

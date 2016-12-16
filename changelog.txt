@@ -4,6 +4,11 @@ Lead developer: Maniu
 
 == Changelog ==
 
+= 1.2.5 =
+* Added new [reader-posts-grid] shortcode
+* Improved shortcode handling in reader posts
+* Other small improvements
+
 = 1.2 =
 * Added lists to easily group followed sites
 * Added user's private sites to post lists even when blocked

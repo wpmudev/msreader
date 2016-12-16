@@ -158,6 +158,9 @@
 .msreader-post-content {
 	background: #fff;
 }
+.msreader-post-content h2 {
+	font-weight: bold !important;
+}
 .msreader-post-content img {
 	max-width: 100%;
 	height: auto;

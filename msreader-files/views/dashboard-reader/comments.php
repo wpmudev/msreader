@@ -41,7 +41,7 @@ class MSReader_Dashboard_Walker_Comment extends Walker_Comment {
 			<?php 
 			if ( current_user_can('moderate_comments') || current_user_can('edit_post', $comment->comment_post_ID)) {
 			?>
-				<div class="comment-moderation row-actions">
+				<div class="comment-moderation">
 					<span class="spinner spinner-save"></span>
 					<?php if('private' == $comment->comment_type ) { ?>
 						<span class="private"><?php _e( 'Private Comment', 'wmd_msreader' ); ?></a></span>
@@ -51,7 +51,7 @@ class MSReader_Dashboard_Walker_Comment extends Walker_Comment {
 						<span class="unapprove"><a class="comment-unapprove" data-action="unapprove" href="#"><?php _e( 'Unapprove', 'wmd_msreader' ); ?></a></span>
 					<?php } ?>
 					<?php if('private' != $comment->comment_type ) { ?>
-					 | <span class="trash"><a class="comment-spam" href="#" data-action="spam"><?php _e( 'Spam', 'wmd_msreader' ); ?></a></span> 
+					 | <span class="trash"><a class="comment-spam" href="#" data-action="spam"><?php _e( 'Spam', 'wmd_msreader' ); ?></a></span>
 					 | <span class="trash"><a class="comment-trash" href="#" data-action="trash"><?php _e( 'Trash', 'wmd_msreader' ); ?></a>
 					<?php } else { ?>
 					 | <span class="delete"><a class="comment-trash" href="#" data-action="trash"><?php _e( 'Delete permanently', 'wmd_msreader' ); ?></a>

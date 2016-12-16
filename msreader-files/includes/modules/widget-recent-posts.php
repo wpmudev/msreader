@@ -67,10 +67,11 @@ class WMD_MSReader_Module_WidgetRecentPosts extends WMD_MSReader_Modules {
             if(is_array($posts) && count($posts) > 0) {
                 if(isset($before_widget))
                     echo $before_widget;
-                 
+
                 if(isset($title) && isset($before_title))
                     echo $before_title;
-                if($title)
+
+                if ( $title )
                     echo $title;
                 if(isset($title) && isset($after_title))
                     echo $after_title;
@@ -79,14 +80,14 @@ class WMD_MSReader_Module_WidgetRecentPosts extends WMD_MSReader_Modules {
                         echo '<div class="widget_recent_entries">';
                             echo '<ul>';
 
-                            foreach ($posts as $post) {
-                                $time = strtotime($post->post_date_gmt) ? $post->post_date_gmt : $post->post_date;
-                                $time = mysql2date(get_option('date_format'), $time, true);
+                    foreach ($posts as $post) {
+                        $time = strtotime($post->post_date_gmt) ? $post->post_date_gmt : $post->post_date;
+                        $time = mysql2date(get_option('date_format'), $time, true);
 
-                                echo '<li>';
-                                    echo '<a target="_blank" href="'.$wmd_msreader->modules['widget_recent_posts']->get_site_post_link($post->BLOG_ID, $post->ID).'">'.$post->post_title.'</a>';
-                                    if($show_date)
-                                        echo ' <span class="post-date">'.$time.'</span>';
+                        echo '<li>';
+                            echo '<a target="_blank" href="'.$wmd_msreader->modules['widget_recent_posts']->get_site_post_link($post->BLOG_ID, $post->ID).'">'.$post->post_title.'</a>';
+                            if($show_date)
+                                echo ' <span class="post-date">'.$time.'</span>';
                             if($show_excerpt) {
                                 $content = wp_html_excerpt($post->post_excerpt, 55, '[...]');
                                 if($content)
@@ -94,16 +95,16 @@ class WMD_MSReader_Module_WidgetRecentPosts extends WMD_MSReader_Modules {
                                 else
                                     echo '<br/>';
                             }
-                                    if($show_author)
+                            if($show_author)
                                 echo ' <cite class="post-author"><small>'.__( 'By ', 'wmd_msreader' ).$post->post_author_display_name.'</small></cite>';
-                                echo '</li>';
-                            }
+                        echo '</li>';
+                    }
 
                             echo '</ul>';
                     if(!isset($instance['remove_widget_class']) || !$instance['remove_widget_class'])
                         echo '</div>';
                 if(isset($after_widget))
-                    echo $after_widget;
+                	echo $after_widget;
             }
         } 
     }
@@ -114,7 +115,7 @@ class wmd_msreader_post_list extends WP_Widget {
     //constructor
     function wmd_msreader_post_list() {
         $widget_ops = array( 'description' => __( 'List of most recent Reader related Posts', 'wmd_msreader') );
-        parent::WP_Widget( false, __( 'Reader: Recent Posts', 'wmd_msreader' ), $widget_ops );
+        parent::__construct( false, __( 'Reader: Recent Posts', 'wmd_msreader' ), $widget_ops );
     }
 
     /** @see WP_Widget::widget */
@@ -128,8 +129,8 @@ class wmd_msreader_post_list extends WP_Widget {
     function update( $new_instance, $old_instance ) {
         $instance = $old_instance;
         $instance['title']  = strip_tags($new_instance['title']);
-        $instance['number']  = strip_tags($new_instance['number']);
-        $instance['number'] = $instance['number'] > 20 ? 20 : ($instance['number'] < 1 ? 1 : 7);
+        $instance['number'] = strip_tags($new_instance['number']);
+        $instance['number'] = $instance['number'] > 20 ? 20 : ($instance['number'] < 1 ? 1 : $instance['number']);
         $instance['show_date']  = strip_tags($new_instance['show_date']);
         $instance['show_excerpt']  = strip_tags($new_instance['show_excerpt']);
         $instance['show_author']  = strip_tags($new_instance['show_author']);

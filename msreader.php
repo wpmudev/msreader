@@ -3,7 +3,7 @@
 Plugin Name: Reader
 Plugin URI: https://premium.wpmudev.org/project/reader/
 Description: Enabled reader that lets users browse posts inside network
-Version: 1.2
+Version: 1.2.5
 Network: false
 Text Domain: wmd_msreader
 Author: WPMU DEV
@@ -33,7 +33,7 @@ class WMD_MSReader {
 		add_action('plugins_loaded', array($this,'plugins_loaded'));
 
 		$this->setup();
-		
+
 		register_activation_hook( $this->plugin['main_file'], array($this, 'activate'));
 		
 		add_action('init', array($this,'load_modules'), 0);
@@ -83,7 +83,9 @@ class WMD_MSReader {
 			'search' => $this->plugin['dir'].'includes/modules/search.php',
 			'user_widget' => $this->plugin['dir'].'includes/modules/user-widget.php',
 			'rss_feeds' => $this->plugin['dir'].'includes/modules/rss-feeds.php',
-			'widget_recent_posts' => $this->plugin['dir'].'includes/modules/widget-recent-posts.php'
+			'widget_recent_posts' => $this->plugin['dir'].'includes/modules/widget-recent-posts.php',
+			'shortcode_recent_posts_grid' => $this->plugin['dir'].'includes/modules/shortcode-recent-posts-grid.php',
+			'banned_words_check' => $this->plugin['dir'].'includes/modules/banned-words-check.php'
 		));
 
 		$this->plugin['default_site_options'] = array(
@@ -120,7 +122,7 @@ class WMD_MSReader {
 
 			if(!file_exists($file))
 				continue;
-			
+
 			include_once( $file );
 
 			//check if it has all the data
@@ -134,7 +136,7 @@ class WMD_MSReader {
 
 			if(class_exists($module['class'])) {
 				$this->available_modules[$module['slug']] = $msreader_available_modules[$module['slug']] = $module;
-				
+
 				//load default module options
 				$module['default_options'] = isset($module['default_options']) ? $module['default_options'] : array();
 				$module['default_options'] = apply_filters('msreader_default_module_options_'.$module['slug'], $module['default_options']);
@@ -169,7 +171,7 @@ class WMD_MSReader {
 			add_action('all_admin_notices', array($this,'post_indexer_notice'));
 			return;
 		}
-		
+
 
 		//setup main query only on correct pages. Passes $_REQUEST stuff to query model and than query model passes to loaded module
 		if((is_admin() && isset($_GET['page']) && $_GET['page'] == 'msreader.php') || (defined('DOING_AJAX') && isset($_REQUEST['source']) && $_REQUEST['source'] == 'msreader') || apply_filters('msreader_requested', 0)) {
@@ -217,7 +219,14 @@ class WMD_MSReader {
 				$load_module = key($this->modules);
 			}
 
+			do_action('msreader_before_main_query_load_module');
+
 			$this->main_query->load_module($this->modules[$load_module], 1);
+
+			do_action('msreader_after_main_query_load_module');
+
+			//This fixes menu title.
+			add_filter('admin_title', array($this,'admin_title') );
 		}
 
 		//add menu pages
@@ -239,10 +248,10 @@ class WMD_MSReader {
 	   	if(!is_multisite())
 	    	trigger_error(sprintf(__('Multisite Theme Manager only works in multisite configuration. You can read more about it <a href="%s" target="_blank">here</a>.', 'wmd_prettythemes'), 'http://codex.wordpress.org/Create_A_Network'),E_USER_ERROR);
  		else {
-        //save default options
-		if($this->plugin['site_options'] == 0)
-			update_site_option('wmd_msreader_options', $this->plugin['default_site_options']);
-	}
+	        //save default options
+			if($this->plugin['site_options'] == 0)
+				update_site_option('wmd_msreader_options', $this->plugin['default_site_options']);
+		}
 	}
 
 	function plugins_loaded() {
@@ -274,10 +283,10 @@ class WMD_MSReader {
 
 	function register_scripts_styles_admin($hook) {
 		if($hook == 'dashboard_page_msreader') {
-			wp_register_style('wmd-msreader-admin', $this->plugin['dir_url'].'css/admin.css', array(), 38);
+			wp_register_style('wmd-msreader-admin', $this->plugin['dir_url'].'css/admin.css', array(), 40);
 			wp_enqueue_style('wmd-msreader-admin');
 
-			wp_register_script('wmd-msreader-admin', $this->plugin['dir_url'].'js/admin.js', array('jquery'), 38);
+			wp_register_script('wmd-msreader-admin', $this->plugin['dir_url'].'js/admin.js', array('jquery'), 40);
 			wp_enqueue_script('wmd-msreader-admin');
 
 			wp_localize_script( 'wmd-msreader-admin', 'msreader_main_query', array(
@@ -353,6 +362,12 @@ class WMD_MSReader {
 			add_dashboard_page($menu_name, $menu_name, 'read', basename($this->plugin['main_file']), array($this,'reader_page'));
 	}
 
+	function admin_title() {
+		$menu_name = __(apply_filters('msreader_header_name', stripslashes($this->plugin['site_options']['name'])), 'wmd_msreader' );
+		
+		return $menu_name;
+	}
+
 	function extra_profile_fields($user) {
 	    $reader_location_options = array('' => __( 'Default', 'wmd_msreader' ), 'replace_dashboard_home' => __( 'Admin dashboard frontpage', 'wmd_msreader' ), 'add_under_dashboard' => __( 'Admin dashboard sub-menu', 'wmd_msreader' ));
 	    $current = get_user_meta( $user->ID, 'wmd_msreader_options_location', true );
@@ -392,8 +407,16 @@ class WMD_MSReader {
 	function filter_private_comments($results) {
 		//if($pagenow == 'edit-comments.php' && $_GET['comment_status'] == 'private')
 		//	$results['where'] = str_replace("( comment_approved = '0' OR comment_approved = '1' )", "( comment_approved = 'private' )", $results['where']);
-		if(defined( 'DOING_AJAX' ) && isset($_REQUEST['source']) && $_POST['source'] == 'msreader' && isset($_REQUEST['post_id']) && current_user_can('edit_post', $_REQUEST['post_id']))
+		if(
+			defined( 'DOING_AJAX' ) && isset($_REQUEST['source']) && $_POST['source'] == 'msreader' && isset($_REQUEST['post_id']) && 
+			(
+				current_user_can('edit_others_posts') ||
+				(current_user_can('edit_posts') && get_the_author_id($_REQUEST['post_id']) == get_current_user_id())
+			)
+		) {
+			$results['where'] = str_replace("( comment_approved = '1' )", "( comment_approved = '1' OR comment_approved = 'private' )", $results['where']);
 			$results['where'] = str_replace("( comment_approved = '0' OR comment_approved = '1' )", "( comment_approved = '0' OR comment_approved = '1' OR comment_approved = 'private' )", $results['where']);
+		}
 
 		return $results;
 	}
@@ -401,27 +424,37 @@ class WMD_MSReader {
 	function dashboard_display_posts_ajax() {
 		error_reporting(0);
 
+		$return = array();
 		$posts = $this->main_query->get_posts();
 
 		if(is_array($posts) && count($posts) > 0) {
 			global $post;
 
+			ob_start();
 			do_action('msreader_dashboard_post_list_before_posts', $posts);
-
+			
 			foreach ($posts as $post) {
-				setup_postdata($post);
-				
-				include($this->plugin['dir'].'views/dashboard-reader/content-post.php');
+				if($post) {
+					setup_postdata($post);
+							
+					include($this->plugin['dir'].'views/dashboard-reader/content-post.php');
+				}
 			}
+			$return['html'] = ob_get_clean();
+			$return['count'] = apply_filters('msreader_dashboard_display_posts_count', count($posts), $posts);
 		}
 		elseif($posts != 'error' && !is_array($posts)) {
 			$html = $posts;
+
+			ob_start();
 			include($this->plugin['dir'].'views/dashboard-reader/content-page.php');
+			$return['html'] = ob_get_clean();
+			$return['count'] = 1;
 		}
 		else 
-			echo 0;
+			wp_send_json_error();
 
-		die();
+		wp_send_json_success($return);
 	}
 
 	function dashboard_display_post_ajax() {

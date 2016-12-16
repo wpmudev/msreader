@@ -10,7 +10,8 @@ $module = array(
         'button_visibility' => 'both',
         'button_visibility_for' => 'loggedin'
     ),
-    'type' => 'query'
+    'type' => 'query',
+    'allow_count' => true
 );
 
 class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
@@ -72,7 +73,7 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
         else {
             $text = __('Following', 'wmd_msreader');
             $hover_text = __('Unfollow', 'wmd_msreader');
-            $class = ' following';    
+            $class = ' following';
             $manage_class = '';    
         }
 
@@ -275,9 +276,9 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
 
             function follow_control(blog_id, post_id, action, button, frontend) {
                 if(!action && button && button.hasClass('following'))
-                        var action = 'unfollow';
-                    else
-                        var action = 'follow';
+                    var action = 'unfollow';
+                else
+                    var action = 'follow';
 
                 if(blog_id && action) {
                     if(!frontend)
@@ -378,7 +379,7 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
                             }
 
                             if(new_list_name.length)
-                            msreader.refresh_sidebar();
+                                msreader.refresh_sidebar();
                         }
                         else {
                             manage_form.find('.msreader-popup-content').html(response);
@@ -470,9 +471,9 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
             }
         }
 
-        if(defined('DOING_AJAX') && isset($_POST['action']) && $_POST['action'] == 'msreader_follow_control')
-            die();
-    }
+            if(defined('DOING_AJAX') && isset($_POST['action']) && $_POST['action'] == 'msreader_follow_control')
+                die();
+        }
 
     function list_control($blog_id = false, $lists_ids = array(), $new_list_name = '') {
         $lists_ids = $lists_ids ? $lists_ids : (isset($this->args['lists_ids']) ? $this->args['lists_ids'] : array());
@@ -612,7 +613,7 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
                 else {
                     $this->message_type = 0;
                     $this->message = sprintf(__( 'List already exists. You can manage it <a href="%s">here</a>.', 'wmd_msreader' ), $this->get_module_dashboard_url(array('action' => 'manage', 'follow_list' => $name_exists_key)));
-                }      
+                }
             }
         }
     }
@@ -761,17 +762,17 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
 
     function add_widget($widgets) {
         $this->user_follow_data = $this->get_user_follow_data();
-        
-            $lists = array();
+
+        $lists = array();
 
         $user_follow_data_lists = $this->user_follow_data['lists'];
         asort($user_follow_data_lists, SORT_NATURAL);
         foreach ($user_follow_data_lists as $list_id => $list_name) {
-                $link = $this->get_module_dashboard_url(array('action' => 'manage', 'follow_list' => $list_id));
-                $active = ($this->helpers->is_page_link_active($link)) ? 'class="active" ' : '';
+            $link = $this->get_module_dashboard_url(array('action' => 'manage', 'follow_list' => $list_id));
+            $active = ($this->helpers->is_page_link_active($link)) ? 'class="active" ' : '';
 
-                $lists[] = array('args' => $list_id,'title' => $list_name.'</a><a '.$active.'href="'.$link.'" title="'.__('Manage this list', 'wmd_msreader').'"><span class="msreader-widget-links-element msreader-widget-links-icon dashicons-admin-generic"></span>');
-            }
+            $lists[] = array('args' => $list_id,'title' => $list_name.'</a><a '.$active.'href="'.$link.'" title="'.__('Manage this list', 'wmd_msreader').'"><span class="msreader-widget-links-element msreader-widget-links-icon dashicons-admin-generic"></span>');
+        }
 
         //this is element that will allow to create new lists
         $lists[] = 
@@ -814,14 +815,12 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
     }
 
     function widget_recent_posts_add_arg_modules($arg_modules) {
-        if(is_user_logged_in()) {
-            $this->user_follow_data = $this->get_user_follow_data();
-            $user_follow_data_lists = $this->user_follow_data['lists'];
+        $this->user_follow_data = $this->get_user_follow_data();
+        $user_follow_data_lists = $this->user_follow_data['lists'];
 
-            asort($user_follow_data_lists, SORT_NATURAL);
-            foreach ($user_follow_data_lists as $list_id => $list_name) {
-                $arg_modules[] = array('class' => 'my_lists', 'value' => $this->details['slug'].'|'.$list_id, 'title' => __('My Lists', 'wmd_msreader').': '.$list_name);
-            }
+        asort($user_follow_data_lists, SORT_NATURAL);
+        foreach ($user_follow_data_lists as $list_id => $list_name) {
+            $arg_modules[] = array('class' => 'my_lists', 'value' => $this->details['slug'].'|'.$list_id, 'title' => __('My Lists', 'wmd_msreader').': '.$list_name);
         }
 
         return $arg_modules;
@@ -910,7 +909,7 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
         return $title;
     }
 
-    function query() {
+    function query($count = false) {
         global $wpdb;
 
         $posts = '';
@@ -928,6 +927,7 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
             }
 
             $followed_by_user = $this->get_followed_sites(1, $follow_list);
+
 
             if($followed_by_user) {
                 $followed_by_user_ready = array();
@@ -982,9 +982,9 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
                         </div>
                     </div>
                     <div class="postbox msreader-widget">
-                    <h3>'.__( 'Edit this list', 'wmd_msreader' ).'</h3>
-                    <div class="inside">
-                        '.__( 'Modify name:', 'wmd_msreader' ).' <input name="name" type="text" value="'.esc_attr($list_name).'"/> <input type="submit" class="button button-secondary button-small" name="change_name" value="'.__( 'Save', 'wmd_msreader' ).'"/><br/>
+                        <h3>'.__( 'Edit this list', 'wmd_msreader' ).'</h3>
+                        <div class="inside">
+                            '.__( 'Modify name:', 'wmd_msreader' ).' <input name="name" type="text" value="'.esc_attr($list_name).'"/> <input type="submit" class="button button-secondary button-small" name="change_name" value="'.__( 'Save', 'wmd_msreader' ).'"/><br/>
                             '.__( 'Delete it: <small>Mark this checkbox to confirm', 'wmd_msreader' ).' <input name="delete_confirm" type="checkbox" value="1"/> '.__( 'and click</small>', 'wmd_msreader' ).' <input type="submit" class="button button-secondary button-small" name="delete" value="'.__( 'Delete', 'wmd_msreader' ).'"/><br/>
                         </div>
                     </div>
@@ -993,7 +993,6 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
                 
         }
         else {
-            $limit = $this->get_limit();
             $public = $this->get_public();
             $follow_list = isset($this->args[0]) ? $this->args[0] : false;
 
@@ -1001,8 +1000,17 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
 
             $followed_by_user_ids = implode(',', $followed_by_user);
 
+            if($count) {
+                $select = "count(*)";
+                $limit = "";
+            }
+            else {
+                $limit = $this->get_limit();
+                $select = "posts.BLOG_ID AS BLOG_ID, ID, post_author, post_date, post_date_gmt, post_content, post_title";
+            }
+            
             $query = "
-                SELECT posts.BLOG_ID AS BLOG_ID, ID, post_author, post_date, post_date_gmt, post_content, post_title
+                SELECT $select
                 FROM $this->db_network_posts AS posts
                 INNER JOIN $this->db_blogs AS blogs ON blogs.blog_id = posts.BLOG_ID
                 WHERE $public blogs.archived = 0 AND blogs.spam = 0 AND blogs.deleted = 0
@@ -1012,8 +1020,11 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
                 ORDER BY post_date_gmt DESC
                 $limit
             ";
-            $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $public, $followed_by_user_ids);
+            $query = apply_filters('msreader_'.$this->details['slug'].'_query', $query, $this->args, $limit, $public, $followed_by_user_ids, $this->get_user(), $select, $count);
             
+            if($count)
+                $posts = $wpdb->get_var($query);
+            else
             $posts = $wpdb->get_results($query);
         }
 
@@ -1031,9 +1042,10 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
 
     function get_followed_sites($check = 0, $follow_list = 0) {
         if($this->get_user()) {
-            $this->user_follow_data = $this->get_user_follow_data();
+            //we want to force it to get new data when not on admin as we are probably displaying data for not logged in user
+            $this->user_follow_data = $this->get_user_follow_data(!is_admin());
             if(!$follow_list) {
-            $followed_by_default = explode(',', str_replace(' ', '', $this->options['follow_by_default']));
+                $followed_by_default = explode(',', str_replace(' ', '', $this->options['follow_by_default']));
                 $followed_by_user = array_diff (array_merge($this->user_follow_data['followed'], $followed_by_default), $this->user_follow_data['unfollowed']);
             }
             else {
@@ -1058,8 +1070,9 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
             return array();
     }
 
-    function get_user_follow_data() {
-        if(!isset($this->user_follow_data)) {
+    function get_user_follow_data($force = false) {
+        //we should store and compare user id here or get rif of this pseudo cache
+        if(!isset($this->user_follow_data) || $force) {
             $this->user_follow_data = get_user_option('msreader_follow', $this->get_user());
 
             $this->user_follow_data = !$this->user_follow_data ? array('followed' => array(), 'unfollowed' => array()) : $this->user_follow_data;

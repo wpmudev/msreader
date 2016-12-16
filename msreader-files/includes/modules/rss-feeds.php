@@ -12,7 +12,7 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
 
 	function init() {
         if(isset($_GET['msreader_'.$this->details['slug']]) && $_GET['msreader_'.$this->details['slug']] == 'view' && isset($_GET['key']) && isset($_GET['module'])) {
-            add_action('set_current_user', array( $this, "set_current_user" ), 15);
+            add_action('msreader_before_main_query_load_module', array( $this, "set_current_user" ), 15);
             add_filter('msreader_requested', '__return_true');
             add_filter('msreader_query_limit_default', array( $this, "msreader_query_limit_default"));
             add_action('init', array( $this, "display_rss" ), 15);
@@ -163,12 +163,12 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
     }
 
     function set_current_user() {
-        global $wpdb;    
+        global $wpdb, $msreader_main_query;    
 
         $user_id = $wpdb->get_var($wpdb->prepare("SELECT user_id FROM $wpdb->usermeta where meta_key = 'msreader_rss_feeds_key' AND meta_value = %s", $_GET['key']));
 
         if($user_id)
-            wp_set_current_user($user_id);
+            $msreader_main_query->user = $user_id;
         else
             exit();
     }
@@ -201,9 +201,10 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
 
         <channel>
             <title><?php echo __('Reader','wmd_msreader'); echo ': '.$msreader_main_query->module->details['name'].' - '; bloginfo_rss('name'); ?></title>
+            <description><?php echo __('Reader','wmd_msreader'); echo ': '.$msreader_main_query->module->details['name'].' - '; bloginfo_rss('name'); ?></description>
             <atom:link href="<?php self_link(); ?>" rel="self" type="application/rss+xml" />
             <link><?php echo get_admin_url( get_user_meta($this->get_user(), 'primary_blog', true), 'index.php?page=msreader.php'); ?></link>
-            <lastBuildDate><?php echo mysql2date('D, d M Y H:i:s +0000', isset($posts[0]->post_date) ? $posts[0]->post_date : '', false); ?></lastBuildDate>
+            <lastBuildDate><?php echo mysql2date('D, d M Y H:i:s GMT', isset($posts[0]->post_date) ? $posts[0]->post_date : '', false); ?></lastBuildDate>
             <sy:updatePeriod><?php echo apply_filters( 'rss_update_period', 'hourly' ); ?></sy:updatePeriod>
             <sy:updateFrequency><?php echo apply_filters( 'rss_update_frequency', 1 ); ?></sy:updateFrequency>
             <?php
@@ -245,12 +246,12 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
         if(defined('DOING_AJAX'))
             error_reporting(0);
 
-            if(isset($this->args['module']))
-                $module = $this->args['module'];
-            else {
-                global $msreader_main_query;
-                $module = $msreader_main_query->module->details['slug'];
-            }
+        if(isset($this->args['module']))
+            $module = $this->args['module'];
+        else {
+            global $msreader_main_query;
+            $module = $msreader_main_query->module->details['slug'];
+        }
 
         $generate = (isset($this->args['generate']) && $this->args['generate']) ? 1 : $generate;
         $regenerate = (isset($this->args['regenerate']) && $this->args['regenerate']) ? 1 : $regenerate;
@@ -279,13 +280,13 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
                 elseif(isset($msreader_main_query->module->args) && count($msreader_main_query->module->args))
                     $module_args = $msreader_main_query->module->args;
 
-        $feed_link_args = array(
-                'module' => $module,
-                'key' => $user_feed_key, 
-                'msreader_rss_feeds' => 'view'
-            );
-        if(isset($module_args))
-            $feed_link_args['args'] = $module_args;
+                $feed_link_args = array(
+                        'module' => $module,
+                        'key' => $user_feed_key, 
+                        'msreader_rss_feeds' => 'view'
+                    );
+                if(isset($module_args))
+                    $feed_link_args['args'] = $module_args;
 
                 $initial_url = site_url();
             }
