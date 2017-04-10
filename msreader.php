@@ -3,7 +3,7 @@
 Plugin Name: Reader
 Plugin URI: https://premium.wpmudev.org/project/reader/
 Description: Enabled reader that lets users browse posts inside network
-Version: 1.2.5
+Version: 1.2.6
 Network: false
 Text Domain: wmd_msreader
 Author: WPMU DEV

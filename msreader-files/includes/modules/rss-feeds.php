@@ -72,7 +72,7 @@ class WMD_MSReader_Module_RssFeeds extends WMD_MSReader_Modules {
     function add_css_js() {
         echo 
         '<style type="text/css">
-        .msreader-rss-feeds-link {background: #FE9900; color: #fff; padding: 1px; margin: 2px 0 0 15px; box-shadow: 0 1px 1px rgba(0,0,0,.04); border: 1px solid #e5e5e5;}
+        .msreader-rss-feeds-link {background: #FE9900; color: #fff; padding: 1px; margin: 4px 0 0 15px; box-shadow: 0 1px 1px rgba(0,0,0,.04); border: 1px solid #e5e5e5; width: auto; height: auto;}
         .msreader-rss-feeds-link:hover, .msreader-rss-feeds-link.active {background: #ffbf00; color: #fff;}
         .msreader-rss-feeds-box {background: #fffaf2; display: none;}
         .msreader-rss-feeds-box input {width:92%;}

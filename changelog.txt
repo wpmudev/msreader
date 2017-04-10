@@ -4,6 +4,10 @@ Lead developer: Maniu
 
 == Changelog ==
 
+= 1.2.6 =
+* Fixed list manager page not loading
+* Other small improvements
+
 = 1.2.5 =
 * Added new [reader-posts-grid] shortcode
 * Improved shortcode handling in reader posts

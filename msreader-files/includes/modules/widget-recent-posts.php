@@ -81,6 +81,9 @@ class WMD_MSReader_Module_WidgetRecentPosts extends WMD_MSReader_Modules {
                             echo '<ul>';
 
                     foreach ($posts as $post) {
+                        if(!$post)
+                            continue;
+                            
                         $time = strtotime($post->post_date_gmt) ? $post->post_date_gmt : $post->post_date;
                         $time = mysql2date(get_option('date_format'), $time, true);
 
@@ -113,7 +116,7 @@ class WMD_MSReader_Module_WidgetRecentPosts extends WMD_MSReader_Modules {
 // Widget for Subscribe
 class wmd_msreader_post_list extends WP_Widget {
     //constructor
-    function wmd_msreader_post_list() {
+    function __construct() {
         $widget_ops = array( 'description' => __( 'List of most recent Reader related Posts', 'wmd_msreader') );
         parent::__construct( false, __( 'Reader: Recent Posts', 'wmd_msreader' ), $widget_ops );
     }

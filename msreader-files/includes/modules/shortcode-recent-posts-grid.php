@@ -88,7 +88,7 @@ class WMD_MSReader_Module_ShortcodePostsGrid extends WMD_MSReader_Modules {
 		$number = (is_numeric($attrs['number']) && $attrs['number'] < 50) ? $attrs['number'] : 50;
 		$posts_per_row = (is_numeric($attrs['posts_per_row']) && $attrs['posts_per_row'] > 0) ? $attrs['posts_per_row'] : 3;        
 
-		$user_id = get_the_author_meta('ID');
+		$user_id = get_the_author_id();
 		if(!$user_id && is_user_logged_in())
 			$user_id = get_current_user_id();
 
@@ -114,6 +114,9 @@ class WMD_MSReader_Module_ShortcodePostsGrid extends WMD_MSReader_Modules {
 					<ul class="reader-posts-grid-container">
 						<?php
 						foreach ($posts as $post) {
+							if(!$post)
+								continue;
+							
 							if(!$attrs['hide_image']) { 
 								$image = preg_replace('~(?:\[/?)[^/\]]+/?\]~s', '', strip_tags($post->featured_media_html, '<img>'));
 								$image_url = $this->get_img_src($image);

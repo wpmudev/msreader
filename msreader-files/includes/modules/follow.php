@@ -971,7 +971,7 @@ class WMD_MSReader_Module_Follow extends WMD_MSReader_Modules {
             if(isset($follow_list)) {
                 $posts .= 
                 '<form method="post" action="">
-                    '.wp_nonce_field( 'msreader_follow_manage', 'msreader_follow_manage', false ).'
+                    '.wp_nonce_field( 'msreader_follow_manage', 'msreader_follow_manage', true, false ).'
                     <input type="hidden" name="follow_list" value="'.esc_attr($this->args['follow_list']).'"/>
                     <div class="postbox msreader-widget">
                         <h3>'.__( 'Add sites to this list', 'wmd_msreader' ).'</h3>

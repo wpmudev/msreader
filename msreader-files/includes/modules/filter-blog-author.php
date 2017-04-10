@@ -55,6 +55,9 @@ class WMD_MSReader_Module_FilterBlogAuthor extends WMD_MSReader_Modules {
             AND post_password = ''
         ";
 
+        if(!isset($this->args['blog_id']) && !isset($this->args['author_id']))
+            $query = "";
+
         if(isset($this->args['blog_id']) && is_numeric($this->args['blog_id']))
             $query .= $wpdb->prepare("
                 AND posts.BLOG_ID = %d
