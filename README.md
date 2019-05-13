@@ -2,7 +2,14 @@
 
 **INACTIVE NOTICE: This plugin is unsupported by WPMUDEV, we've published it here for those technical types who might want to fork and maintain it for their needs.**
 
-## Reader turns your Multisite into a community by adding Tumblr, WordPress.com and Edublogs style "follow" features.
+## Translations
+
+Translation files can be found at https://github.com/wpmudev/translations
+
+
+## Usage
+
+Reader turns your Multisite into a community by adding Tumblr, WordPress.com and Edublogs style "follow" features.
 
 Complete with a beautiful and fully-featured dashboard reader experience that allows comments, RSS feeds and significant customization. 
 
