@@ -11,7 +11,7 @@ $module = array(
 class WMD_MSReader_Module_WidgetRecentPosts extends WMD_MSReader_Modules {
 
 	function init() {
-        add_action( 'widgets_init', create_function( '', 'return register_widget("wmd_msreader_post_list");' ) );
+        add_action( 'widgets_init', function(){  return register_widget("wmd_msreader_post_list"); } );
         add_action('admin_footer-widgets.php', array($this,'add_js'));
     }
 
